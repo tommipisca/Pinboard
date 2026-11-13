@@ -28,6 +28,8 @@ public partial class App : Application
         // --floating: finestra normale sopra le altre, per controllare che il disegno funzioni
         // senza l'aggancio al desktop.
         Pinboard.Clock.MainWindow.Floating = e.Args.Contains("--floating");
+        if (e.Args.Contains("--z-top")) DesktopHost.ZMode = "top";
+        else if (e.Args.Contains("--z-bottom")) DesktopHost.ZMode = "bottom";
         Pinboard.Clock.MainWindow.Opaque = e.Args.Contains("--opaque");
         new MainWindow().Show();
     }

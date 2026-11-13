@@ -23,6 +23,29 @@ internal static class DesktopHost
     private static readonly IntPtr HWND_TOPMOST = new(-1);
     private static readonly IntPtr HWND_NOTOPMOST = new(-2);
 
+    /// <summary>Prova di posizionamento: auto (sotto le icone), top (sopra a tutto), bottom.</summary>
+    public static string ZMode { get; set; } = "auto";
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetWindow(IntPtr hWnd, uint cmd);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder sb, int max);
+
+    public static void LogChildren(IntPtr parent, string label)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"Figli di {label} dall'alto verso il basso:");
+        for (IntPtr h = GetWindow(parent, 5); h != IntPtr.Zero; h = GetWindow(h, 2))
+        {
+            var cls = new System.Text.StringBuilder(256);
+            GetClassName(h, cls, 256);
+            GetWindowRect(h, out RECT r);
+            sb.Append($"{Environment.NewLine}   0x{h.ToInt64():X} {cls} vis={IsWindowVisible(h)} " +
+                      $"rect=({r.Left},{r.Top},{r.Right},{r.Bottom})");
+        }
+        App.Log(sb.ToString());
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     private struct POINT { public int X, Y; }
 
@@ -108,13 +131,17 @@ internal static class DesktopHost
         var p = new POINT { X = screenX, Y = screenY };
         MapWindowPoints(IntPtr.Zero, layer, ref p, 1);
         // Con insertAfter la finestra va subito sotto SHELLDLL_DefView; senza, resta dov'e'.
-        uint flags = SWP_NOACTIVATE | SWP_SHOWWINDOW | (insertAfter == IntPtr.Zero ? SWP_NOZORDER : 0);
+        if (ZMode == "top") insertAfter = IntPtr.Zero;            // HWND_TOP
+        else if (ZMode == "bottom") insertAfter = new IntPtr(1);  // HWND_BOTTOM
+        bool keepZ = ZMode == "auto" && insertAfter == IntPtr.Zero;
+        uint flags = SWP_NOACTIVATE | SWP_SHOWWINDOW | (keepZ ? SWP_NOZORDER : 0);
         bool ok = SetWindowPos(hwnd, insertAfter, p.X, p.Y, width, height, flags);
         GetWindowRect(hwnd, out RECT r);
         App.Log($"SetWindowPos ok={ok} err={Marshal.GetLastWin32Error()} client=({p.X},{p.Y}) " +
                 $"screenRect=({r.Left},{r.Top},{r.Right},{r.Bottom}) visible={IsWindowVisible(hwnd)} " +
                 $"parent=0x{GetParent(hwnd).ToInt64():X} style=0x{GetWindowLong(hwnd, GWL_STYLE):X} " +
-                $"exstyle=0x{GetWindowLong(hwnd, GWL_EXSTYLE):X}");
+                $"exstyle=0x{GetWindowLong(hwnd, GWL_EXSTYLE):X} zmode={ZMode}");
+        LogChildren(layer, $"0x{layer.ToInt64():X}");
     }
 
     /// <summary>Stacca la finestra dal desktop per poterla trascinare.</summary>
