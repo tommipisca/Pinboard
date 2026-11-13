@@ -21,6 +21,8 @@ public partial class MainWindow : Window
     private IntPtr _hwnd;
     private bool _editing;
 
+    internal static bool Floating { get; set; }
+
     public MainWindow()
     {
         InitializeComponent();
@@ -37,6 +39,14 @@ public partial class MainWindow : Window
         HwndSource.FromHwnd(_hwnd)?.AddHook(WndProc);
 
         CreateTrayIcon();
+
+        if (Floating)
+        {
+            Topmost = true;
+            App.Log("Modalita' --floating: nessun aggancio al desktop.");
+            return;
+        }
+
         AttachToDesktop();
     }
 
@@ -79,6 +89,7 @@ public partial class MainWindow : Window
         var (x, y) = CurrentOrDefaultPosition();
         var (w, h) = SizeInPixels();
         DesktopHost.Attach(_hwnd, x, y, w, h);
+        App.Log($"Agganciato al desktop in {x},{y} ({w}x{h}px).");
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

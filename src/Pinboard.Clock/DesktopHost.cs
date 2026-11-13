@@ -58,18 +58,18 @@ internal static class DesktopHost
     public static extern uint RegisterWindowMessage(string name);
 
     /// <summary>Trova la finestra del desktop sotto le icone, che ospita lo sfondo.</summary>
-    public static IntPtr FindDesktopLayer()
+    public static (IntPtr parent, IntPtr insertAfter) FindDesktopLayer()
     {
         IntPtr progman = FindWindow("Progman", null);
         // Chiede a Explorer di creare il livello WorkerW dello sfondo.
         SendMessageTimeout(progman, 0x052C, IntPtr.Zero, IntPtr.Zero, 0, 1000, out _);
 
-        // Windows 11 24H2: SHELLDLL_DefView e WorkerW sono entrambi figli di Progman.
-        if (FindWindowEx(progman, IntPtr.Zero, "SHELLDLL_DefView", null) != IntPtr.Zero)
-        {
-            IntPtr child = FindWindowEx(progman, IntPtr.Zero, "WorkerW", null);
-            if (child != IntPtr.Zero) return child;
-        }
+        // Windows 11 24H2: SHELLDLL_DefView (icone) e WorkerW (sfondo) sono entrambi figli di
+        // Progman. Il widget va come figlio di Progman, subito sotto SHELLDLL_DefView, cioe'
+        // sopra lo sfondo e sotto le icone.
+        IntPtr defView = FindWindowEx(progman, IntPtr.Zero, "SHELLDLL_DefView", null);
+        if (defView != IntPtr.Zero)
+            return (progman, defView);
 
         // Layout classico: WorkerW e' fratello di quello che contiene SHELLDLL_DefView.
         IntPtr found = IntPtr.Zero;
@@ -83,13 +83,13 @@ internal static class DesktopHost
             return true;
         }, IntPtr.Zero);
 
-        return found != IntPtr.Zero ? found : progman;
+        return (found != IntPtr.Zero ? found : progman, IntPtr.Zero);
     }
 
     /// <summary>Rende la finestra figlia del desktop e la posiziona (coordinate schermo, pixel).</summary>
     public static void Attach(IntPtr hwnd, int screenX, int screenY, int width, int height)
     {
-        IntPtr layer = FindDesktopLayer();
+        var (layer, insertAfter) = FindDesktopLayer();
 
         int style = GetWindowLong(hwnd, GWL_STYLE);
         SetWindowLong(hwnd, GWL_STYLE, (style & ~WS_POPUP) | WS_CHILD);
@@ -101,8 +101,9 @@ internal static class DesktopHost
         // Le coordinate di una finestra figlia sono relative al genitore.
         var p = new POINT { X = screenX, Y = screenY };
         MapWindowPoints(IntPtr.Zero, layer, ref p, 1);
-        SetWindowPos(hwnd, IntPtr.Zero, p.X, p.Y, width, height,
-            SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+        // Con insertAfter la finestra va subito sotto SHELLDLL_DefView; senza, resta dov'e'.
+        uint flags = SWP_NOACTIVATE | SWP_SHOWWINDOW | (insertAfter == IntPtr.Zero ? SWP_NOZORDER : 0);
+        SetWindowPos(hwnd, insertAfter, p.X, p.Y, width, height, flags);
     }
 
     /// <summary>Stacca la finestra dal desktop per poterla trascinare.</summary>
