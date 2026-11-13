@@ -130,6 +130,18 @@ internal static class DesktopHost
         SetWindowPos(hwnd, HWND_TOPMOST, screenX, screenY, width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
     }
 
+    [DllImport("gdi32.dll")]
+    private static extern IntPtr CreateRoundRectRgn(int l, int t, int r, int b, int w, int h);
+    [DllImport("user32.dll")]
+    private static extern int SetWindowRgn(IntPtr hWnd, IntPtr region, bool redraw);
+
+    /// <summary>Ritaglia gli angoli della finestra (per le finestre non trasparenti).</summary>
+    public static void ApplyRoundedRegion(IntPtr hwnd, int width, int height, int radius)
+    {
+        IntPtr rgn = CreateRoundRectRgn(0, 0, width + 1, height + 1, radius * 2, radius * 2);
+        SetWindowRgn(hwnd, rgn, true); // dopo la chiamata la regione appartiene al sistema
+    }
+
     public static void ClearTopmost(IntPtr hwnd) =>
         SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, 0x0001 | 0x0002 | SWP_NOACTIVATE);
 }

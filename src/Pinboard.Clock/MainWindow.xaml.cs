@@ -23,9 +23,21 @@ public partial class MainWindow : Window
 
     internal static bool Floating { get; set; }
 
+    /// <summary>Senza finestra "layered": sfondo pieno e angoli ritagliati con una regione.</summary>
+    internal static bool Opaque { get; set; }
+
     public MainWindow()
     {
         InitializeComponent();
+
+        if (Opaque)
+        {
+            AllowsTransparency = false;
+            Background = new SolidColorBrush(Color.FromRgb(0x18, 0x1A, 0x1F));
+            Card.CornerRadius = new CornerRadius(0);
+            Card.Background = Brushes.Transparent;
+            Card.BorderThickness = new Thickness(0);
+        }
         _timer.Tick += (_, _) => UpdateText();
         UpdateText();
         _timer.Start();
@@ -89,6 +101,9 @@ public partial class MainWindow : Window
         var (x, y) = CurrentOrDefaultPosition();
         var (w, h) = SizeInPixels();
         DesktopHost.Attach(_hwnd, x, y, w, h);
+        if (Opaque)
+            DesktopHost.ApplyRoundedRegion(_hwnd, w, h,
+                (int)Math.Round(26 * VisualTreeHelper.GetDpi(this).DpiScaleX));
         App.Log($"Agganciato al desktop in {x},{y} ({w}x{h}px).");
     }
 

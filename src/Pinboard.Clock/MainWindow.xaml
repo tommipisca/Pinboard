@@ -6,7 +6,7 @@
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False"
         UseLayoutRounding="True" SnapsToDevicePixels="True">
-    <Border CornerRadius="26"
+    <Border x:Name="Card" CornerRadius="26"
             Background="#C7181A1F"
             BorderBrush="#2EFFFFFF" BorderThickness="1">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
