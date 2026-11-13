@@ -35,12 +35,13 @@ public abstract class WidgetWindow : Window
     /// <summary>Chiamato quattro volte al secondo: aggiorna il contenuto.</summary>
     public virtual void OnTick() { }
 
-    /// <summary>Scheda con angoli arrotondati, in stile widget di macOS.</summary>
-    protected static Border CreateCard(UIElement content) => new()
+    /// <summary>Scheda con angoli arrotondati; colori e raggio si possono cambiare per ogni widget.</summary>
+    protected static Border CreateCard(UIElement content, Brush? background = null, Brush? border = null,
+        double radius = 22) => new()
     {
-        CornerRadius = new CornerRadius(22),
-        Background = Theme.Card,
-        BorderBrush = Theme.CardBorder,
+        CornerRadius = new CornerRadius(radius),
+        Background = background ?? Theme.Card,
+        BorderBrush = border ?? Theme.CardBorder,
         BorderThickness = new Thickness(1),
         Child = content,
     };

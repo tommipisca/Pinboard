@@ -18,12 +18,17 @@ Windows. Lo sfondo non e' sfocato (Mica/Acrylic non funzionano su finestre trasp
 
 ## Widget Exams
 
+Nello stile di ExamsTrack ("inchiostro e evidenziatore"): sfondo blu-inchiostro, testo color carta,
+nome dell'esame in serif (Sitka), countdown in Bahnschrift condensato. Colori e palette degli esami
+sono quelli dell'app. Resta scuro anche con il tema chiaro di Windows.
+
 Legge in sola lettura `%APPDATA%\ExamsTrack\data\exams.json` (e `deletions.json` per escludere gli
 esami eliminati) e si aggiorna da solo quando ExamsTrack salva.
-- Prossimo esame: il primo esame in programma, del corso di laurea `triennale`, non ancora superato
-  e con data da oggi in poi. Mostra nome, data, ora (se c'e') e i giorni mancanti.
-- Oggi: i task con scadenza oggi, di qualsiasi esame. Quelli da fare vengono prima, quelli fatti sono
-  barrati. Il colore del pallino segue l'indice colore dell'esame (la tavolozza e' approssimata).
+- **Prossimo esame**: il primo esame in programma del corso di laurea `triennale`, non ancora superato
+  e con data da oggi in poi. Mostra nome, countdown (colore dell'esame, ambra a 7 giorni, corallo a 2),
+  data, ora e task completati.
+- **Oggi**: fino a 3 task con scadenza oggi, di qualsiasi esame: cerchio nel colore dell'esame,
+  titolo e nome dell'esame. Quelli da fare vengono prima, quelli fatti sono barrati.
 - Il corso di laurea considerato e' la costante `CurrentDegree` in `ExamsWidget.cs`.
 
 ## Eseguibile
