@@ -10,10 +10,21 @@ in fondo alla barra delle applicazioni).
 | --- | --- |
 | Clock | orologio analogico, lancetta dei secondi arancione |
 | Calendar | giorno della settimana in rosso, numero grande, mese e anno |
+| Exams | widget medio: prossimo esame in programma con i giorni che mancano, e i task di oggi di qualsiasi esame |
 
 Lo stile segue i widget piccoli di macOS: scheda quadrata con angoli molto arrotondati (170 x 170),
 sfondo semitrasparente, tipografia sottile e tema chiaro o scuro in base al tema delle app di
 Windows. Lo sfondo non e' sfocato (Mica/Acrylic non funzionano su finestre trasparenti di WPF).
+
+## Widget Exams
+
+Legge in sola lettura `%APPDATA%\ExamsTrack\data\exams.json` (e `deletions.json` per escludere gli
+esami eliminati) e si aggiorna da solo quando ExamsTrack salva.
+- Prossimo esame: il primo esame in programma, del corso di laurea `triennale`, non ancora superato
+  e con data da oggi in poi. Mostra nome, data, ora (se c'e') e i giorni mancanti.
+- Oggi: i task con scadenza oggi, di qualsiasi esame. Quelli da fare vengono prima, quelli fatti sono
+  barrati. Il colore del pallino segue l'indice colore dell'esame (la tavolozza e' approssimata).
+- Il corso di laurea considerato e' la costante `CurrentDegree` in `ExamsWidget.cs`.
 
 ## Eseguibile
 

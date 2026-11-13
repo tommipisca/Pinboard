@@ -15,6 +15,15 @@ internal static class Theme
     public static readonly Brush Red = Make(IsLight ? "#FF3B30" : "#FF453A");
     public static readonly Brush Orange = Make("#FF9F0A");
 
+    private static readonly Brush[] Palette = new[]
+    {
+        "#FF3B30", "#FF9500", "#FFCC00", "#34C759", "#00C7BE",
+        "#32ADE6", "#007AFF", "#5856D6", "#AF52DE", "#FF2D55",
+    }.Select(Make).ToArray();
+
+    /// <summary>Colore di un esame, scelto con il suo indice colore in ExamsTrack.</summary>
+    public static Brush Accent(int index) => Palette[((index % Palette.Length) + Palette.Length) % Palette.Length];
+
     private static bool DetectLight()
     {
         try
