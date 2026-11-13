@@ -43,6 +43,11 @@ Crea `dist\Pinboard.exe`, un unico file che funziona anche senza .NET installato
 
 Per provare senza creare l'eseguibile: `dotnet run --project src/Pinboard`.
 
+## Icona
+
+`src/Pinboard/Assets/Pinboard.ico` e' l'icona dell'eseguibile e dell'area di notifica. Si rigenera
+(insieme a `assets/pinboard-icon-1024.png`) con `python3 assets/make_icon.py`, che richiede Pillow.
+
 ## Uso
 
 Icona nell'area di notifica (accanto all'orologio di Windows):

@@ -101,11 +101,27 @@ internal static class WidgetManager
 
         _tray = new Forms.NotifyIcon
         {
-            Icon = System.Drawing.SystemIcons.Application,
+            Icon = LoadAppIcon(),
             Text = "Pinboard",
             ContextMenuStrip = menu,
             Visible = true,
         };
+    }
+
+    /// <summary>L'icona dell'eseguibile (Assets\Pinboard.ico); se manca, quella predefinita.</summary>
+    private static System.Drawing.Icon LoadAppIcon()
+    {
+        try
+        {
+            if (Environment.ProcessPath is string path &&
+                System.Drawing.Icon.ExtractAssociatedIcon(path) is System.Drawing.Icon icon)
+                return icon;
+        }
+        catch
+        {
+            // Si usa l'icona predefinita.
+        }
+        return System.Drawing.SystemIcons.Application;
     }
 
     private static void ToggleEditMode()
