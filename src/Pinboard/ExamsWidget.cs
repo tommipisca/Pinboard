@@ -15,7 +15,6 @@ namespace Pinboard;
 public sealed class ExamsWidget : WidgetWindow
 {
     private const int MaxTaskRows = 3;
-    private const string CurrentDegree = "triennale";
 
     private static readonly CultureInfo Italian = new("it-IT");
 
@@ -74,10 +73,13 @@ public sealed class ExamsWidget : WidgetWindow
         List<ExamItem> exams = ExamsData.Load();
         DateTime today = DateTime.Today;
 
+        // Stessa regola dell'app (nextExam in logic.js): il primo esame con una data, da oggi in poi,
+        // per data e poi per nome. Il corso e' quello scelto in ExamsDegree; senza scelta, entrambi.
+        string? degree = WidgetManager.Settings.ExamsDegree;
         ExamItem? next = exams
-            .Where(e => e.IsScheduled && e.Degree == CurrentDegree && !e.Passed && !e.HasGrade && e.Date >= today)
+            .Where(e => e.IsScheduled && e.Date >= today && (string.IsNullOrEmpty(degree) || e.Degree == degree))
             .OrderBy(e => e.Date)
-            .ThenBy(e => e.StartMinutes ?? int.MaxValue)
+            .ThenBy(e => e.Name, StringComparer.Create(Italian, ignoreCase: true))
             .FirstOrDefault();
 
         List<TaskItem> tasks = exams
@@ -121,7 +123,7 @@ public sealed class ExamsWidget : WidgetWindow
             big.Inlines.Add(CountdownRun("Domani", 40, color));
         else
         {
-            big.Inlines.Add(CountdownRun(days.ToString(Italian), 52, color));
+            big.Inlines.Add(CountdownRun(days.ToString(Italian), 46, color));
             big.Inlines.Add(new Run(" giorni")
             {
                 FontFamily = UiFont,
@@ -138,11 +140,14 @@ public sealed class ExamsWidget : WidgetWindow
             when += " · " + TimeSpan.FromMinutes(m).ToString(@"hh\:mm");
         _left.Children.Add(Tb(when, 12, TextSecondary, UiFont));
 
+        // Con entrambi i corsi visibili si indica quale e' (come nel widget iOS).
+        var details = new List<string>();
+        if (string.IsNullOrEmpty(WidgetManager.Settings.ExamsDegree) && exam.Degree.Length > 0)
+            details.Add(char.ToUpper(exam.Degree[0], Italian) + exam.Degree[1..]);
         if (exam.Tasks.Count > 0)
-        {
-            int done = exam.Tasks.Count(t => t.IsDone);
-            _left.Children.Add(Tb($"{done} di {exam.Tasks.Count} task", 11, TextSecondary, UiFont));
-        }
+            details.Add($"{exam.Tasks.Count(t => t.IsDone)} di {exam.Tasks.Count} task");
+        if (details.Count > 0)
+            _left.Children.Add(Tb(string.Join(" · ", details), 11, TextSecondary, UiFont));
     }
 
     private static Run CountdownRun(string text, double size, Brush color) => new(text)

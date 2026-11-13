@@ -8,6 +8,9 @@ internal sealed class WidgetSettings
 {
     public Dictionary<string, int[]> Positions { get; set; } = new();
 
+    /// <summary>Corso mostrato dal widget Exams: "triennale", "magistrale" o vuoto per entrambi (come ExamsTrack).</summary>
+    public string? ExamsDegree { get; set; }
+
     private static string FilePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "Pinboard", "widgets.json");
