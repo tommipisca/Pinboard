@@ -20,7 +20,7 @@ public sealed class ExamsWidget : WidgetWindow
     private static readonly CultureInfo Italian = new("it-IT");
 
     // Tema dell'app: sempre scuro, indipendente dal tema di Windows.
-    private static readonly Brush Background = Theme.Make("#F20F1728");  // inchiostro
+    private static readonly Brush InkBackground = Theme.Make("#F20F1728");  // inchiostro
     private static readonly Brush Stroke = Theme.Make("#26324A");        // filetti
     private static readonly Brush TextPrimary = Theme.Make("#ECE8DD");   // carta
     private static readonly Brush TextSecondary = Theme.Make("#93A0B8"); // matita
@@ -56,7 +56,7 @@ public sealed class ExamsWidget : WidgetWindow
         grid.Children.Add(divider);
         grid.Children.Add(_right);
 
-        Content = CreateCard(grid, Background, Stroke, radius: 20);
+        Content = CreateCard(grid, InkBackground, Stroke, radius: 20);
         OnTick();
     }
 
@@ -131,7 +131,6 @@ public sealed class ExamsWidget : WidgetWindow
                 BaselineAlignment = BaselineAlignment.Baseline,
             });
         }
-        big.Opacity = 1;
         _left.Children.Add(big);
 
         string when = exam.Date.ToString("ddd d MMM", Italian);
