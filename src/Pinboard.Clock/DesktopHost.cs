@@ -95,17 +95,31 @@ internal static class DesktopHost
         App.Log($"PlaceAboveDesktop desktop=0x{desktop.ToInt64():X} ({ClassOf(desktop)}) ok={ok}");
     }
 
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out int value, int size);
+
     private static bool _wasHidden;
+    private static bool _desktopMode;
+    private static string _lastForeground = "";
 
     /// <summary>
-    /// Da chiamare a intervalli: se "Mostra desktop" ha nascosto o minimizzato il widget lo
-    /// rimostra, e lo rimette sopra il desktop quando il desktop e' in primo piano.
+    /// Da chiamare a intervalli. Quando "Mostra desktop" porta in primo piano il desktop, il
+    /// widget diventa temporaneamente "sempre in primo piano" per restare visibile; quando
+    /// un'altra finestra torna attiva, ridiventa una finestra normale subito sopra il desktop.
     /// </summary>
     public static void KeepVisible(IntPtr hwnd)
     {
         IntPtr fg = GetForegroundWindow();
         string fgClass = fg == IntPtr.Zero ? "" : ClassOf(fg);
         bool desktopFocused = fgClass is "Progman" or "WorkerW";
+
+        if (fgClass != _lastForeground)
+        {
+            DwmGetWindowAttribute(hwnd, 14 /* DWMWA_CLOAKED */, out int cloaked, sizeof(int));
+            App.Log($"Primo piano: '{fgClass}' | widget visibile={IsWindowVisible(hwnd)} " +
+                    $"minimizzato={IsIconic(hwnd)} cloaked={cloaked}");
+            _lastForeground = fgClass;
+        }
 
         bool hidden = IsIconic(hwnd) || !IsWindowVisible(hwnd);
         if (hidden != _wasHidden)
@@ -115,8 +129,20 @@ internal static class DesktopHost
         }
         if (hidden) ShowWindow(hwnd, 4 /* SW_SHOWNOACTIVATE */);
 
-        if (desktopFocused || hidden)
-            SetWindowPos(hwnd, FindDesktopTopLevel(), 0, 0, 0, 0, 0x0001 | 0x0002 | SWP_NOACTIVATE);
+        const uint flags = 0x0001 | 0x0002 | SWP_NOACTIVATE; // NOSIZE | NOMOVE | NOACTIVATE
+        if (desktopFocused && !_desktopMode)
+        {
+            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, flags);
+            _desktopMode = true;
+            App.Log("Desktop in primo piano: widget reso topmost.");
+        }
+        else if (!desktopFocused && _desktopMode)
+        {
+            SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, flags);
+            SetWindowPos(hwnd, FindDesktopTopLevel(), 0, 0, 0, 0, flags);
+            _desktopMode = false;
+            App.Log("Desktop non piu' in primo piano: widget rimesso sopra il desktop.");
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

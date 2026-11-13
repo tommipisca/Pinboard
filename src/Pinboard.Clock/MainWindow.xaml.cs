@@ -12,7 +12,7 @@ public partial class MainWindow : Window
 {
     private static readonly CultureInfo Italian = new("it-IT");
 
-    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private readonly WidgetSettings _settings = WidgetSettings.Load();
     private readonly uint _taskbarCreated = DesktopHost.RegisterWindowMessage("TaskbarCreated");
 
