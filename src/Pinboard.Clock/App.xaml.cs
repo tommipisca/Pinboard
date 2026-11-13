@@ -30,6 +30,13 @@ public partial class App : Application
         Pinboard.Clock.MainWindow.Floating = e.Args.Contains("--floating");
         if (e.Args.Contains("--z-top")) DesktopHost.ZMode = "top";
         else if (e.Args.Contains("--z-bottom")) DesktopHost.ZMode = "bottom";
+        Pinboard.Clock.MainWindow.AsChild = e.Args.Contains("--child");
+
+        // Come figlia del desktop, il rendering con la GPU (Direct3D) non viene composto: il
+        // widget risulta un "buco" che mostra lo sfondo. Il rendering software lo evita.
+        if (Pinboard.Clock.MainWindow.AsChild || e.Args.Contains("--soft"))
+            System.Windows.Media.RenderOptions.ProcessRenderMode =
+                System.Windows.Interop.RenderMode.SoftwareOnly;
         Pinboard.Clock.MainWindow.Opaque = e.Args.Contains("--opaque");
         new MainWindow().Show();
     }

@@ -46,6 +46,79 @@ internal static class DesktopHost
         App.Log(sb.ToString());
     }
 
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")]
+    private static extern bool IsIconic(IntPtr hWnd);
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int cmd);
+
+    private static string ClassOf(IntPtr h)
+    {
+        var sb = new System.Text.StringBuilder(256);
+        GetClassName(h, sb, 256);
+        return sb.ToString();
+    }
+
+    /// <summary>Finestra di primo livello che contiene le icone del desktop (Progman o WorkerW).</summary>
+    public static IntPtr FindDesktopTopLevel()
+    {
+        IntPtr progman = FindWindow("Progman", null);
+        if (FindWindowEx(progman, IntPtr.Zero, "SHELLDLL_DefView", null) != IntPtr.Zero) return progman;
+
+        IntPtr found = IntPtr.Zero;
+        EnumWindows((top, _) =>
+        {
+            if (FindWindowEx(top, IntPtr.Zero, "SHELLDLL_DefView", null) != IntPtr.Zero)
+            {
+                found = top;
+                return false;
+            }
+            return true;
+        }, IntPtr.Zero);
+        return found != IntPtr.Zero ? found : progman;
+    }
+
+    /// <summary>
+    /// Modalita' finestra di primo livello: la finestra resta subito sopra il desktop e sotto
+    /// tutte le altre. Nessun genitore, quindi niente problemi di disegno.
+    /// </summary>
+    public static void PlaceAboveDesktop(IntPtr hwnd, int screenX, int screenY, int width, int height)
+    {
+        int style = GetWindowLong(hwnd, GWL_STYLE);
+        SetWindowLong(hwnd, GWL_STYLE, (style & ~WS_CHILD) | WS_POPUP);
+        int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
+        SetWindowLong(hwnd, GWL_EXSTYLE, (ex | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE) & ~WS_EX_APPWINDOW);
+
+        IntPtr desktop = FindDesktopTopLevel();
+        bool ok = SetWindowPos(hwnd, desktop, screenX, screenY, width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+        App.Log($"PlaceAboveDesktop desktop=0x{desktop.ToInt64():X} ({ClassOf(desktop)}) ok={ok}");
+    }
+
+    private static bool _wasHidden;
+
+    /// <summary>
+    /// Da chiamare a intervalli: se "Mostra desktop" ha nascosto o minimizzato il widget lo
+    /// rimostra, e lo rimette sopra il desktop quando il desktop e' in primo piano.
+    /// </summary>
+    public static void KeepVisible(IntPtr hwnd)
+    {
+        IntPtr fg = GetForegroundWindow();
+        string fgClass = fg == IntPtr.Zero ? "" : ClassOf(fg);
+        bool desktopFocused = fgClass is "Progman" or "WorkerW";
+
+        bool hidden = IsIconic(hwnd) || !IsWindowVisible(hwnd);
+        if (hidden != _wasHidden)
+        {
+            App.Log($"Widget {(hidden ? "nascosto/minimizzato" : "di nuovo visibile")} (foreground={fgClass})");
+            _wasHidden = hidden;
+        }
+        if (hidden) ShowWindow(hwnd, 4 /* SW_SHOWNOACTIVATE */);
+
+        if (desktopFocused || hidden)
+            SetWindowPos(hwnd, FindDesktopTopLevel(), 0, 0, 0, 0, 0x0001 | 0x0002 | SWP_NOACTIVATE);
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     private struct POINT { public int X, Y; }
 

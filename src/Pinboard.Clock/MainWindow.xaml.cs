@@ -23,6 +23,9 @@ public partial class MainWindow : Window
 
     internal static bool Floating { get; set; }
 
+    /// <summary>--child: vecchio metodo (figlio di Progman). Predefinito: finestra di primo livello.</summary>
+    internal static bool AsChild { get; set; }
+
     /// <summary>Senza finestra "layered": sfondo pieno e angoli ritagliati con una regione.</summary>
     internal static bool Opaque { get; set; }
 
@@ -38,7 +41,12 @@ public partial class MainWindow : Window
             Card.Background = Brushes.Transparent;
             Card.BorderThickness = new Thickness(0);
         }
-        _timer.Tick += (_, _) => UpdateText();
+        _timer.Tick += (_, _) =>
+        {
+            UpdateText();
+            if (!Floating && !AsChild && !_editing && _hwnd != IntPtr.Zero)
+                DesktopHost.KeepVisible(_hwnd);
+        };
         UpdateText();
         _timer.Start();
     }
@@ -100,7 +108,10 @@ public partial class MainWindow : Window
     {
         var (x, y) = CurrentOrDefaultPosition();
         var (w, h) = SizeInPixels();
-        DesktopHost.Attach(_hwnd, x, y, w, h);
+        if (AsChild)
+            DesktopHost.Attach(_hwnd, x, y, w, h);
+        else
+            DesktopHost.PlaceAboveDesktop(_hwnd, x, y, w, h);
         if (Opaque)
             DesktopHost.ApplyRoundedRegion(_hwnd, w, h,
                 (int)Math.Round(26 * VisualTreeHelper.GetDpi(this).DpiScaleX));
