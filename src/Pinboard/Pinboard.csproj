@@ -8,8 +8,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <RootNamespace>Pinboard.Clock</RootNamespace>
-    <AssemblyName>PinboardClock</AssemblyName>
+    <RootNamespace>Pinboard</RootNamespace>
+    <AssemblyName>Pinboard</AssemblyName>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 

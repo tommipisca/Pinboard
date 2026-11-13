@@ -1,17 +1,16 @@
 using System.IO;
 using System.Text.Json;
 
-namespace Pinboard.Clock;
+namespace Pinboard;
 
-/// <summary>Posizione del widget in pixel dello schermo (angolo in alto a sinistra).</summary>
+/// <summary>Posizioni dei widget in pixel dello schermo (angolo in alto a sinistra): id -> [x, y].</summary>
 internal sealed class WidgetSettings
 {
-    public int? X { get; set; }
-    public int? Y { get; set; }
+    public Dictionary<string, int[]> Positions { get; set; } = new();
 
     private static string FilePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "Pinboard", "clock.json");
+        "Pinboard", "widgets.json");
 
     public static WidgetSettings Load()
     {
@@ -22,7 +21,7 @@ internal sealed class WidgetSettings
         }
         catch
         {
-            // File rovinato: si riparte dalla posizione predefinita.
+            // File rovinato: si riparte dalle posizioni predefinite.
         }
         return new();
     }
