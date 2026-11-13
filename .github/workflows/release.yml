@@ -1,0 +1,26 @@
+name: Release
+
+# Quando si pubblica una release su GitHub, compila Pinboard.exe e lo allega alla release.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Compila l'eseguibile
+        shell: pwsh
+        run: ./publish.ps1
+      - name: Allega Pinboard.exe alla release
+        shell: pwsh
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/Pinboard.exe --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
