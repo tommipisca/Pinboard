@@ -1,8 +1,8 @@
 # Pinboard
 
 Widget per il desktop di Windows, con lo stile dei widget di macOS. Non stanno nel pannello widget
-di Windows: sono agganciati al desktop e restano visibili anche con "Mostra desktop" (Win+D o
-pulsante in fondo alla barra delle applicazioni).
+di Windows: stanno sul desktop e restano visibili anche con "Mostra desktop" (Win+D o pulsante
+in fondo alla barra delle applicazioni).
 
 ## Widget
 
@@ -10,20 +10,25 @@ pulsante in fondo alla barra delle applicazioni).
 | --- | --- |
 | Clock (ora e data) | primo prototipo, da provare |
 
-## Come funziona l'aggancio
+## Come resta sul desktop
 
-La finestra del widget diventa figlia del livello del desktop che contiene lo sfondo
-(`Progman` / `WorkerW`) tramite `SetParent`. Non e' piu' una finestra di primo livello, quindi
-"Mostra desktop" non la minimizza e non compare in barra delle applicazioni ne' in Alt+Tab.
-Il codice e' in `src/Pinboard.Clock/DesktopHost.cs` e gestisce sia il layout classico sia quello
-di Windows 11 24H2.
+Il widget e' una finestra di primo livello tenuta subito sopra il desktop e sotto tutte le altre
+finestre. Quando "Mostra desktop" (Win+D o pulsante in fondo alla barra) porta il desktop in
+primo piano, il widget diventa temporaneamente "sempre in primo piano" e resta visibile; quando
+torna attiva un'altra finestra, ridiventa una finestra normale. Il codice e' in
+`src/Pinboard.Clock/DesktopHost.cs`.
+
+L'aggancio come figlio del desktop (`SetParent` su `Progman`/`WorkerW`, la tecnica di Lively)
+e' ancora presente con l'opzione `--child`, ma su Windows 11 24H2 il contenuto non viene
+disegnato, quindi non e' usato.
 
 Limiti noti:
-- i widget stanno sotto le icone del desktop;
-- i click non arrivano al widget, perche' il livello delle icone sta sopra (per ora i widget
-  sono solo informativi);
+- il widget sta sopra le icone del desktop e le copre se si sovrappone;
 - lo sfondo e' semitrasparente, senza sfocatura (Mica/Acrylic non funzionano su finestre
   trasparenti di WPF).
+
+Opzioni a riga di comando (per diagnosi): `--floating` (finestra normale in primo piano),
+`--child`, `--opaque`, `--soft`. Il log e' in `%APPDATA%\Pinboard\clock.log`.
 
 ## Compilare e provare
 
