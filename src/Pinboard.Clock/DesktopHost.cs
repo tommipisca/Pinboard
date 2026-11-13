@@ -40,8 +40,12 @@ internal static class DesktopHost
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam,
         uint flags, uint timeout, out IntPtr result);
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SetParent(IntPtr child, IntPtr newParent);
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetParent(IntPtr hWnd);
     [DllImport("user32.dll")]
     private static extern int GetWindowLong(IntPtr hWnd, int index);
     [DllImport("user32.dll")]
@@ -96,14 +100,21 @@ internal static class DesktopHost
         int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
         SetWindowLong(hwnd, GWL_EXSTYLE, (ex | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE) & ~WS_EX_APPWINDOW);
 
-        SetParent(hwnd, layer);
+        IntPtr oldParent = SetParent(hwnd, layer);
+        App.Log($"layer=0x{layer.ToInt64():X} insertAfter=0x{insertAfter.ToInt64():X} " +
+                $"SetParent->old=0x{oldParent.ToInt64():X} err={Marshal.GetLastWin32Error()}");
 
         // Le coordinate di una finestra figlia sono relative al genitore.
         var p = new POINT { X = screenX, Y = screenY };
         MapWindowPoints(IntPtr.Zero, layer, ref p, 1);
         // Con insertAfter la finestra va subito sotto SHELLDLL_DefView; senza, resta dov'e'.
         uint flags = SWP_NOACTIVATE | SWP_SHOWWINDOW | (insertAfter == IntPtr.Zero ? SWP_NOZORDER : 0);
-        SetWindowPos(hwnd, insertAfter, p.X, p.Y, width, height, flags);
+        bool ok = SetWindowPos(hwnd, insertAfter, p.X, p.Y, width, height, flags);
+        GetWindowRect(hwnd, out RECT r);
+        App.Log($"SetWindowPos ok={ok} err={Marshal.GetLastWin32Error()} client=({p.X},{p.Y}) " +
+                $"screenRect=({r.Left},{r.Top},{r.Right},{r.Bottom}) visible={IsWindowVisible(hwnd)} " +
+                $"parent=0x{GetParent(hwnd).ToInt64():X} style=0x{GetWindowLong(hwnd, GWL_STYLE):X} " +
+                $"exstyle=0x{GetWindowLong(hwnd, GWL_EXSTYLE):X}");
     }
 
     /// <summary>Stacca la finestra dal desktop per poterla trascinare.</summary>
