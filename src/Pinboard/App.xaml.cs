@@ -52,6 +52,7 @@ public partial class App : Application
         UiTheme.Apply();
         AutoStart.Refresh();
         WidgetManager.Start();
+        Updater.Start();
 
         if (!e.Args.Contains(AutoStart.BackgroundArg)) ShowDashboard();
     }
@@ -83,11 +84,14 @@ public partial class App : Application
         _dashboard.Activate();
     }
 
+    internal static void ShowSettings() => _dashboard?.ShowSettingsPage();
+
     protected override void OnExit(ExitEventArgs e)
     {
         Exiting = true;
         WidgetManager.Shutdown();
         _singleInstance?.Dispose();
+        Updater.ApplyOnExit();
         base.OnExit(e);
     }
 

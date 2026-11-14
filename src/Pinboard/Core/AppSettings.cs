@@ -47,6 +47,9 @@ public sealed class AppSettings
     public List<string> Favorites { get; set; } = new();
     public bool CloseHintShown { get; set; }
 
+    /// <summary>Controlla da solo se ci sono aggiornamenti (all'avvio e ogni 6 ore).</summary>
+    public bool AutoUpdate { get; set; } = true;
+
     /// <summary>%APPDATA%\Pinboard, oppure la cartella in PINBOARD_HOME (per le prove).</summary>
     internal static string Folder =>
         Environment.GetEnvironmentVariable("PINBOARD_HOME") is { Length: > 0 } home

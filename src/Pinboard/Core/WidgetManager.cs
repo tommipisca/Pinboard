@@ -212,13 +212,31 @@ internal static class WidgetManager
         var open = new Forms.ToolStripMenuItem("Apri Pinboard", null, (_, _) => App.ShowDashboard());
         open.Font = new System.Drawing.Font(open.Font, System.Drawing.FontStyle.Bold);
         _moveItem = new Forms.ToolStripMenuItem("Sposta widget", null, (_, _) => SetEditing(!Editing));
+        var update = new Forms.ToolStripMenuItem("Controlla aggiornamenti", null, (_, _) =>
+        {
+            if (Updater.Status == UpdateStatus.Ready) Updater.RestartAndUpdate();
+            else
+            {
+                App.ShowDashboard();
+                App.ShowSettings();
+                _ = Updater.CheckAsync();
+            }
+        });
         var exit = new Forms.ToolStripMenuItem("Esci", null, (_, _) => App.Quit());
 
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add(open);
         menu.Items.Add(_moveItem);
+        menu.Items.Add(update);
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(exit);
+        menu.Opening += (_, _) =>
+        {
+            update.Visible = Updater.Status != UpdateStatus.Unsupported;
+            update.Text = Updater.Status == UpdateStatus.Ready
+                ? $"Riavvia e aggiorna a {Updater.NewVersion}"
+                : "Controlla aggiornamenti";
+        };
 
         _tray = new Forms.NotifyIcon
         {

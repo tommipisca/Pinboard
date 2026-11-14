@@ -15,7 +15,15 @@
     <Version>0.1.0</Version>
     <Product>Pinboard</Product>
     <Description>Widget per il desktop di Windows</Description>
+    <Authors>Tommaso Piscaglia</Authors>
+    <!-- Main e' in Program.cs: Velopack deve partire prima di WPF. -->
+    <StartupObject>Pinboard.Program</StartupObject>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- WPF e WinForms insieme creano nomi ambigui (Application, Color...). -->
@@ -26,6 +34,10 @@
 
   <ItemGroup>
     <Resource Include="Assets/Pinboard.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
 
 </Project>

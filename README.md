@@ -36,17 +36,54 @@ Ogni tipo di widget e' una classe che estende `WidgetDefinition` (in `src/Pinboa
 nome, descrizione, categoria, taglie, colore d'accento predefinito, la vista (`WidgetView`) e,
 se servono, i controlli per le opzioni proprie. Poi va aggiunto a `WidgetCatalog.All`.
 
-## Eseguibile
+## Download
 
-Serve il .NET 8 SDK solo per compilare. Da PowerShell, nella cartella della repo:
+Dalle [release](https://github.com/tommipisca/Pinboard/releases/latest):
+- `Pinboard-Setup-<versione>.exe`: installer. Installa Pinboard per l'utente corrente (senza permessi
+  di amministratore) in `%LOCALAPPDATA%\Pinboard`, con collegamento sul desktop e nel menu Start.
+  Si disinstalla da Impostazioni di Windows → App.
+- `Pinboard-portable-<versione>.zip`: versione portable. Si estrae dove si vuole e si avvia
+  `Pinboard.exe`.
+
+Non serve installare .NET. L'installer non e' firmato: se SmartScreen avvisa al primo avvio, fai
+clic su **Ulteriori informazioni → Esegui comunque**.
+
+## Aggiornamenti
+
+Pinboard controlla le release di GitHub 15 secondi dopo l'avvio e poi ogni 6 ore. Se trova una
+versione nuova la scarica in background (di solito solo le differenze) e la installa quando esci da
+Pinboard, oppure subito con **Impostazioni → Aggiornamenti → Riavvia e aggiorna** o dal menu
+nell'area di notifica. Vale sia per la versione installata sia per quella portable. Il controllo
+automatico si puo' disattivare nella stessa sezione. I dati in `%APPDATA%\Pinboard` non vengono toccati.
+
+Gli aggiornamenti usano [Velopack](https://velopack.io).
+
+## Sviluppo
+
+Serve il .NET 8 SDK. Per provare: `dotnet run --project src/Pinboard` (cosi' gli aggiornamenti
+sono disattivati).
+
+### Pubblicare una release
+
+Serve `vpk`, nella stessa versione del pacchetto Velopack in `Pinboard.csproj`:
 
 ```powershell
-.\publish.ps1
+dotnet tool install -g vpk --version 1.2.161
 ```
 
-Crea `dist\Pinboard.exe`, un unico file che funziona anche senza .NET installato.
+1. Aggiorna `<Version>` in `src/Pinboard/Pinboard.csproj`, fai commit e push.
+2. Esegui `.\release.ps1` (facoltativo: `-Notes note.md` con le novita' in Markdown).
+   Scarica l'ultima release da GitHub per creare il pacchetto delta, poi mette tutti i file in
+   `build\release\<versione>`.
+3. Crea su GitHub la release con tag `v<versione>` e allega **tutti** i file di quella cartella:
+   installer, portable, i `.nupkg`, `releases.win.json` e `RELEASES`.
 
-Per provare senza creare l'eseguibile: `dotnet run --project src/Pinboard`.
+L'app installata legge l'elenco delle versioni dalle release di GitHub (`releases.win.json`), quindi
+ogni release deve includerlo e non deve essere segnata come pre-release.
+
+Per provare un aggiornamento senza pubblicare: crea due versioni con
+`.\release.ps1 -Feed <cartella>` (la seconda con `<Version>` piu' alta), installa la prima e
+avviala con la variabile d'ambiente `PINBOARD_UPDATE_URL=<cartella>`.
 
 ## Dati
 

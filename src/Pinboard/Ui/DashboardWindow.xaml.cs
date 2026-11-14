@@ -33,6 +33,10 @@ public partial class DashboardWindow : Window
 
         WidgetManager.Changed += OnWidgetsChanged;
         WidgetManager.ThemeChanged += OnThemeChanged;
+        Updater.Changed += () =>
+        {
+            if (NavSettings.IsChecked == true) _reshow?.Invoke();
+        };
         UpdateCount();
 
         if (WidgetManager.Widgets.Count > 0) NavDesktop.IsChecked = true;
@@ -61,6 +65,8 @@ public partial class DashboardWindow : Window
     }
 
     public void ShowCatalogPage() => NavCatalog.IsChecked = true;
+
+    public void ShowSettingsPage() => NavSettings.IsChecked = true;
 
     private void OnNav(object sender, RoutedEventArgs e)
     {
@@ -466,36 +472,32 @@ public partial class DashboardWindow : Window
 
         var exit = UiKit.Button("Esci da Pinboard", "Button.Secondary", () => App.Quit());
 
-        var group = new StackPanel();
-        void Row(string title, string caption, FrameworkElement control, bool last = false)
-        {
-            control.VerticalAlignment = VerticalAlignment.Center;
-            var dock = new DockPanel { Margin = new Thickness(20, 16, 20, 16) };
-            DockPanel.SetDock(control, Dock.Right);
-            dock.Children.Add(control);
-            dock.Children.Add(new StackPanel
-            {
-                Margin = new Thickness(0, 0, 24, 0),
-                Children = { UiKit.Text(title, "Text.Label"), UiKit.Text(caption, "Text.Caption", new Thickness(0, 3, 0, 0)) },
-            });
-            group.Children.Add(dock);
-            if (!last)
-            {
-                var line = new Border { Height = 1, Margin = new Thickness(20, 0, 20, 0) };
-                line.SetResourceReference(Border.BackgroundProperty, "Stroke");
-                group.Children.Add(line);
-            }
-        }
-        Row("Avvia con Windows", "I widget compaiono appena accedi, senza aprire questa finestra.", startup);
-        Row("Posizione dei widget", "Staccali dal desktop per trascinarli dove vuoi, poi bloccali.", move);
-        Row("Esci", "Chiudendo questa finestra Pinboard resta attivo accanto all'orologio. " +
+        var general = new StackPanel();
+        Row(general, "Avvia con Windows", "I widget compaiono appena accedi, senza aprire questa finestra.", startup);
+        Row(general, "Posizione dei widget", "Rendili trascinabili per spostarli dove vuoi sul desktop, poi bloccali.", move);
+        Row(general, "Esci", "Chiudendo questa finestra Pinboard resta attivo accanto all'orologio. " +
                     "Per toglierlo del tutto, compresi i widget, esci.", exit, last: true);
 
-        var card = new Border { CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), Child = group };
-        card.SetResourceReference(Border.BackgroundProperty, "Bg.SurfaceAlt");
-        card.SetResourceReference(Border.BorderBrushProperty, "Stroke");
+        var updates = new StackPanel();
+        bool supported = Updater.Status != UpdateStatus.Unsupported;
+        string version = "Versione " + Updater.CurrentVersion + (Updater.IsPortable ? " (portable)" : "");
+        Row(updates, version, UpdateCaption(), UpdateButton(), last: !supported);
+        if (supported)
+        {
+            var auto = new CheckBox { IsChecked = WidgetManager.Settings.AutoUpdate };
+            auto.SetResourceReference(StyleProperty, "Switch");
+            System.Windows.Automation.AutomationProperties.SetName(auto, "Controlla automaticamente");
+            auto.Click += (_, _) =>
+            {
+                WidgetManager.Settings.AutoUpdate = auto.IsChecked == true;
+                WidgetManager.Settings.Save();
+                Updater.Schedule();
+            };
+            Row(updates, "Controlla automaticamente",
+                "All'avvio e ogni 6 ore. Le nuove versioni si scaricano da sole e si installano quando esci.",
+                auto, last: true);
+        }
 
-        var version = typeof(App).Assembly.GetName().Version;
         var page = new StackPanel
         {
             Margin = new Thickness(40, 32, 40, 32),
@@ -504,12 +506,77 @@ public partial class DashboardWindow : Window
             Children =
             {
                 Header("Impostazioni", "Come si comporta Pinboard sul tuo computer."),
-                card,
-                UiKit.Text($"Pinboard {version?.Major}.{version?.Minor}.{version?.Build}", "Text.Caption",
-                    new Thickness(2, 16, 0, 0)),
+                Card(general),
+                UiKit.Text("Aggiornamenti", "Text.Heading", new Thickness(2, 28, 0, 12)),
+                Card(updates),
             },
         };
         SetPage(page, ShowSettings);
+    }
+
+    private static void Row(Panel group, string title, string caption, FrameworkElement control, bool last = false)
+    {
+        control.VerticalAlignment = VerticalAlignment.Center;
+        var dock = new DockPanel { Margin = new Thickness(20, 16, 20, 16) };
+        DockPanel.SetDock(control, Dock.Right);
+        dock.Children.Add(control);
+        dock.Children.Add(new StackPanel
+        {
+            Margin = new Thickness(0, 0, 24, 0),
+            Children = { UiKit.Text(title, "Text.Label"), UiKit.Text(caption, "Text.Caption", new Thickness(0, 3, 0, 0)) },
+        });
+        group.Children.Add(dock);
+        if (!last)
+        {
+            var line = new Border { Height = 1, Margin = new Thickness(20, 0, 20, 0) };
+            line.SetResourceReference(Border.BackgroundProperty, "Stroke");
+            group.Children.Add(line);
+        }
+    }
+
+    private static Border Card(UIElement content)
+    {
+        var card = new Border { CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), Child = content };
+        card.SetResourceReference(Border.BackgroundProperty, "Bg.SurfaceAlt");
+        card.SetResourceReference(Border.BorderBrushProperty, "Stroke");
+        return card;
+    }
+
+    private static string UpdateCaption()
+    {
+        string last = Updater.LastCheck is DateTime t
+            ? $" Ultimo controllo: {(t.Date == DateTime.Today ? "oggi" : t.ToString("d MMMM", Fonts.Italian))} alle {t:HH:mm}."
+            : "";
+        return Updater.Status switch
+        {
+            UpdateStatus.Unsupported =>
+                "Gli aggiornamenti funzionano nella versione installata e in quella portable scaricate dalle release.",
+            UpdateStatus.Checking => "Controllo in corso…",
+            UpdateStatus.UpToDate => "Hai l'ultima versione." + last,
+            UpdateStatus.Downloading => $"Scarico la versione {Updater.NewVersion} ({Updater.Percent}%).",
+            UpdateStatus.Ready => $"La versione {Updater.NewVersion} è pronta: si installa quando esci da Pinboard.",
+            UpdateStatus.Error => Updater.Error + last,
+            _ => "Pinboard controlla da solo se ci sono nuove versioni.",
+        };
+    }
+
+    private static Button UpdateButton()
+    {
+        switch (Updater.Status)
+        {
+            case UpdateStatus.Unsupported:
+                return UiKit.Button("Apri le release", "Button.Secondary", () =>
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Updater.ReleasesUrl)
+                    {
+                        UseShellExecute = true,
+                    }));
+            case UpdateStatus.Ready:
+                return UiKit.Button("Riavvia e aggiorna", "Button.Primary", Updater.RestartAndUpdate);
+            default:
+                var check = UiKit.Button("Controlla ora", "Button.Secondary", () => _ = Updater.CheckAsync());
+                check.IsEnabled = Updater.Status is not (UpdateStatus.Checking or UpdateStatus.Downloading);
+                return check;
+        }
     }
 }
 
