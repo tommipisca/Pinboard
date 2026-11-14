@@ -74,6 +74,7 @@ public static class WidgetCatalog
     {
         new ClockDefinition(),
         new CalendarDefinition(),
+        new CountdownDefinition(),
         new ProgressDefinition(),
     };
 
