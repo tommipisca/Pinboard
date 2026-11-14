@@ -1,6 +1,8 @@
 name: Release
 
-# Quando si pubblica una release su GitHub, compila Pinboard.exe e lo allega alla release.
+# When a release is published on GitHub, build Pinboard with Velopack and attach the installer,
+# the portable zip and the update files (.nupkg, releases.win.json, RELEASES) to the release.
+# The release tag must be v<Version>, with <Version> from src/Pinboard/Pinboard.csproj.
 on:
   release:
     types: [published]
@@ -9,18 +11,47 @@ permissions:
   contents: write
 
 jobs:
-  exe:
+  release:
     runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ github.event.release.tag_name }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - name: Compila l'eseguibile
+
+      - name: Install vpk (same version as the Velopack package)
         shell: pwsh
-        run: ./publish.ps1
-      - name: Allega Pinboard.exe alla release
+        run: |
+          dotnet tool install -g vpk --version 1.2.161
+          "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
+
+      - name: Check that the tag matches the app version
         shell: pwsh
-        run: gh release upload "${{ github.event.release.tag_name }}" dist/Pinboard.exe --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          [xml]$xml = Get-Content src/Pinboard/Pinboard.csproj
+          $version = @($xml.Project.PropertyGroup | ForEach-Object { $_.Version } | Where-Object { $_ })[0]
+          if ("v$version" -ne $env:TAG) { throw "Tag $env:TAG does not match <Version>$version</Version>" }
+          "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Download the previous release (for the delta package)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory build/packages -Force | Out-Null
+          $previous = gh release list --exclude-drafts --exclude-pre-releases --json tagName --jq '.[].tagName' |
+            Where-Object { $_ -ne $env:TAG } | Select-Object -First 1
+          if ($previous) {
+            gh release download $previous -p "*-full.nupkg" -p "releases.win.json" -D build/packages
+            if ($LASTEXITCODE -ne 0) { Write-Host "$previous has no Velopack packages: no delta." }
+          }
+          $global:LASTEXITCODE = 0
+
+      - name: Build the release
+        shell: pwsh
+        run: ./release.ps1 -Feed build/packages
+
+      - name: Attach the files to the release
+        shell: pwsh
+        run: gh release upload $env:TAG (Get-ChildItem "build/release/$env:VERSION").FullName --clobber
