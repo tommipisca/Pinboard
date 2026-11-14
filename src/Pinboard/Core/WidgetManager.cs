@@ -5,7 +5,7 @@ using Forms = System.Windows.Forms;
 
 namespace Pinboard;
 
-/// <summary>I widget sul desktop: li crea, li aggiorna, li salva. Gestisce anche l'icona nell'area di notifica.</summary>
+/// <summary>The widgets on the desktop: creates, updates and saves them. Also handles the notification area icon.</summary>
 internal static class WidgetManager
 {
     private static readonly List<WidgetHost> Hosts = new();
@@ -19,10 +19,10 @@ internal static class WidgetManager
 
     public static bool Editing { get; private set; }
 
-    /// <summary>Widget aggiunti, tolti o modificati, o modalita' "sposta" cambiata.</summary>
+    /// <summary>Widgets added, removed or changed, or "move" mode toggled.</summary>
     public static event Action? Changed;
 
-    /// <summary>Il tema chiaro/scuro di Windows e' cambiato.</summary>
+    /// <summary>The Windows light/dark theme changed.</summary>
     public static event Action? ThemeChanged;
 
     public static IReadOnlyList<WidgetInstance> Widgets => Settings.Widgets;
@@ -37,7 +37,7 @@ internal static class WidgetManager
             if (WidgetCatalog.Find(w.Type) is WidgetDefinition def)
                 Open(w, def);
             else
-                App.Log($"Widget di tipo sconosciuto '{w.Type}' ignorato.", force: true);
+                App.Log($"Ignoring widget of unknown type '{w.Type}'.", force: true);
         }
 
         Timer.Tick += (_, _) =>
@@ -75,7 +75,7 @@ internal static class WidgetManager
         ThemeChanged?.Invoke();
     }
 
-    // --- Widget -------------------------------------------------------------------------
+    // --- Widgets ------------------------------------------------------------------------
 
     public static void Add(WidgetInstance w)
     {
@@ -88,7 +88,7 @@ internal static class WidgetManager
         Changed?.Invoke();
     }
 
-    /// <summary>Applica le personalizzazioni di <paramref name="edited"/> al widget con lo stesso id.</summary>
+    /// <summary>Applies the customizations of <paramref name="edited"/> to the widget with the same id.</summary>
     public static void Update(WidgetInstance edited)
     {
         WidgetHost? host = Hosts.FirstOrDefault(h => h.Instance.Id == edited.Id);
@@ -123,12 +123,12 @@ internal static class WidgetManager
         var host = new WidgetHost(w, def);
         Hosts.Add(host);
         host.Show();
-        // Show() porta la finestra in cima alle altre: va rimessa subito sopra il desktop dopo.
+        // Show() brings the window on top of the others: put it back just above the desktop afterwards.
         host.Place();
         return host;
     }
 
-    // --- Favoriti -----------------------------------------------------------------------
+    // --- Favorites ----------------------------------------------------------------------
 
     public static bool IsFavorite(string type) => Settings.Favorites.Contains(type);
 
@@ -139,9 +139,9 @@ internal static class WidgetManager
         Settings.Save();
     }
 
-    // --- Posizioni ----------------------------------------------------------------------
+    // --- Positions ----------------------------------------------------------------------
 
-    /// <summary>Posizione salvata; se manca, il primo spazio libero partendo dall'alto a destra.</summary>
+    /// <summary>Saved position; if missing, the first free spot starting from the top right.</summary>
     public static (int x, int y) PositionFor(WidgetHost host)
     {
         if (host.Instance.Position is { Length: 2 } p && IsOnScreen(p[0], p[1]))
@@ -190,7 +190,7 @@ internal static class WidgetManager
         return x >= left && y >= top && x < left + width - 40 && y < top + height - 40;
     }
 
-    /// <summary>Stacca i widget dal desktop per trascinarli, o li rimette al loro posto salvando le posizioni.</summary>
+    /// <summary>Makes the widgets draggable, or locks them again and saves their positions.</summary>
     public static void SetEditing(bool editing)
     {
         if (editing == Editing) return;
@@ -201,18 +201,18 @@ internal static class WidgetManager
             else h.EndEdit();
         }
         if (!editing) Settings.Save();
-        if (_moveItem != null) _moveItem.Text = editing ? "Blocca posizione" : "Sposta widget";
+        if (_moveItem != null) _moveItem.Text = editing ? "Lock position" : "Move widgets";
         Changed?.Invoke();
     }
 
-    // --- Area di notifica ---------------------------------------------------------------
+    // --- Notification area --------------------------------------------------------------
 
     private static void CreateTrayIcon()
     {
-        var open = new Forms.ToolStripMenuItem("Apri Pinboard", null, (_, _) => App.ShowDashboard());
+        var open = new Forms.ToolStripMenuItem("Open Pinboard", null, (_, _) => App.ShowDashboard());
         open.Font = new System.Drawing.Font(open.Font, System.Drawing.FontStyle.Bold);
-        _moveItem = new Forms.ToolStripMenuItem("Sposta widget", null, (_, _) => SetEditing(!Editing));
-        var update = new Forms.ToolStripMenuItem("Controlla aggiornamenti", null, (_, _) =>
+        _moveItem = new Forms.ToolStripMenuItem("Move widgets", null, (_, _) => SetEditing(!Editing));
+        var update = new Forms.ToolStripMenuItem("Check for updates", null, (_, _) =>
         {
             if (Updater.Status == UpdateStatus.Ready) Updater.RestartAndUpdate();
             else
@@ -222,7 +222,7 @@ internal static class WidgetManager
                 _ = Updater.CheckAsync();
             }
         });
-        var exit = new Forms.ToolStripMenuItem("Esci", null, (_, _) => App.Quit());
+        var exit = new Forms.ToolStripMenuItem("Quit", null, (_, _) => App.Quit());
 
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add(open);
@@ -234,8 +234,8 @@ internal static class WidgetManager
         {
             update.Visible = Updater.Status != UpdateStatus.Unsupported;
             update.Text = Updater.Status == UpdateStatus.Ready
-                ? $"Riavvia e aggiorna a {Updater.NewVersion}"
-                : "Controlla aggiornamenti";
+                ? $"Restart and update to {Updater.NewVersion}"
+                : "Check for updates";
         };
 
         _tray = new Forms.NotifyIcon
@@ -254,7 +254,7 @@ internal static class WidgetManager
     public static void ShowTrayTip(string title, string text) =>
         _tray?.ShowBalloonTip(5000, title, text, Forms.ToolTipIcon.None);
 
-    /// <summary>L'icona dell'eseguibile (Assets\Pinboard.ico); se manca, quella predefinita.</summary>
+    /// <summary>The executable's icon (Assets\Pinboard.ico); the default one if missing.</summary>
     private static System.Drawing.Icon LoadAppIcon()
     {
         try
@@ -265,13 +265,13 @@ internal static class WidgetManager
         }
         catch
         {
-            // Si usa l'icona predefinita.
+            // Use the default icon.
         }
         return System.Drawing.SystemIcons.Application;
     }
 }
 
-/// <summary>Avvio automatico con Windows (chiave Run dell'utente).</summary>
+/// <summary>Start with Windows (the user's Run key).</summary>
 internal static class AutoStart
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
@@ -308,7 +308,7 @@ internal static class AutoStart
         }
     }
 
-    /// <summary>Se l'avvio automatico e' attivo, aggiorna percorso e argomenti (l'exe puo' essere stato spostato).</summary>
+    /// <summary>If start with Windows is on, refreshes path and arguments (the exe may have moved).</summary>
     public static void Refresh()
     {
         if (IsEnabled()) Set(true);

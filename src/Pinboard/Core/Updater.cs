@@ -8,21 +8,21 @@ namespace Pinboard;
 
 public enum UpdateStatus
 {
-    /// <summary>Avvio da Visual Studio o con dotnet run: non c'e' niente da aggiornare.</summary>
+    /// <summary>Started from Visual Studio or with dotnet run: there is nothing to update.</summary>
     Unsupported,
     Idle,
     Checking,
     UpToDate,
     Downloading,
-    /// <summary>Scaricato: si installa all'uscita o con "Riavvia e aggiorna".</summary>
+    /// <summary>Downloaded: installs on quit or with "Restart and update".</summary>
     Ready,
     Error,
 }
 
 /// <summary>
-/// Aggiornamenti dalle release di GitHub (Velopack). Pinboard controlla 15 secondi dopo l'avvio e poi
-/// ogni 6 ore; se c'e' una versione nuova la scarica in background e la installa quando si esce, o subito
-/// con "Riavvia e aggiorna". Vale sia per la versione installata sia per quella portable.
+/// Updates from GitHub releases (Velopack). Pinboard checks 15 seconds after startup and then
+/// every 6 hours; if there is a new version it downloads it in the background and installs it on quit, or
+/// right away with "Restart and update". Works for both the installed and the portable version.
 /// </summary>
 internal static class Updater
 {
@@ -59,7 +59,7 @@ internal static class Updater
         }
         catch (Exception ex)
         {
-            App.Log("Aggiornamenti non disponibili: " + ex.Message, force: true);
+            App.Log("Updates not available: " + ex.Message, force: true);
         }
 
         if (_manager == null || !_manager.IsInstalled)
@@ -68,7 +68,7 @@ internal static class Updater
             return;
         }
 
-        // Un aggiornamento scaricato in una sessione precedente e non ancora installato.
+        // An update downloaded in a previous session and not installed yet.
         if (_manager.UpdatePendingRestart is VelopackAsset pending)
         {
             _ready = pending;
@@ -85,8 +85,8 @@ internal static class Updater
     }
 
     /// <summary>
-    /// GitHub, oppure una cartella o un indirizzo in PINBOARD_UPDATE_URL: serve per provare gli
-    /// aggiornamenti senza pubblicare una release.
+    /// GitHub, or a folder or URL in PINBOARD_UPDATE_URL: used to test updates
+    /// without publishing a release.
     /// </summary>
     private static IUpdateSource CreateSource()
     {
@@ -97,7 +97,7 @@ internal static class Updater
             : new SimpleWebSource(custom);
     }
 
-    /// <summary>Avvia o ferma i controlli automatici secondo l'impostazione.</summary>
+    /// <summary>Starts or stops the automatic checks according to the setting.</summary>
     public static void Schedule()
     {
         Timer.Stop();
@@ -134,19 +134,19 @@ internal static class Updater
 
             _ready = info.TargetFullRelease;
             Set(UpdateStatus.Ready);
-            WidgetManager.ShowTrayTip("Aggiornamento pronto",
-                $"Pinboard {NewVersion} si installerà quando esci. Per installarlo subito usa Riavvia e aggiorna.");
+            WidgetManager.ShowTrayTip("Update ready",
+                $"Pinboard {NewVersion} will install when you quit. To install it now, use Restart and update.");
         }
         catch (Exception ex)
         {
-            App.Log("Controllo aggiornamenti non riuscito: " + ex, force: true);
+            App.Log("Update check failed: " + ex, force: true);
             LastCheck = DateTime.Now;
             Error = Describe(ex);
             Set(UpdateStatus.Error);
         }
     }
 
-    /// <summary>Esce da Pinboard, installa l'aggiornamento scaricato e lo riapre.</summary>
+    /// <summary>Quits Pinboard, installs the downloaded update and opens it again.</summary>
     public static void RestartAndUpdate()
     {
         if (Status != UpdateStatus.Ready) return;
@@ -155,8 +155,8 @@ internal static class Updater
     }
 
     /// <summary>
-    /// Da chiamare all'uscita, dopo aver chiuso i widget: se c'e' un aggiornamento scaricato,
-    /// Velopack aspetta che Pinboard sia chiuso e lo installa in silenzio.
+    /// Call on exit, after closing the widgets: if an update has been downloaded,
+    /// Velopack waits for Pinboard to close and installs it silently.
     /// </summary>
     public static void ApplyOnExit()
     {
@@ -168,7 +168,7 @@ internal static class Updater
         }
         catch (Exception ex)
         {
-            App.Log("Installazione dell'aggiornamento non riuscita: " + ex, force: true);
+            App.Log("Could not install the update: " + ex, force: true);
         }
     }
 
@@ -179,16 +179,16 @@ internal static class Updater
         Changed?.Invoke();
     }
 
-    /// <summary>Messaggio comprensibile al posto dell'errore tecnico.</summary>
+    /// <summary>A readable message instead of the technical error.</summary>
     private static string Describe(Exception ex)
     {
         string text = ex.ToString();
         if (ex is System.Net.Http.HttpRequestException or TaskCanceledException ||
             text.Contains("No such host", StringComparison.OrdinalIgnoreCase) ||
             text.Contains("Host sconosciuto", StringComparison.OrdinalIgnoreCase))
-            return "Nessuna connessione a GitHub. Riprova più tardi.";
+            return "Can't reach GitHub. Try again later.";
         if (text.Contains("403") || text.Contains("rate limit", StringComparison.OrdinalIgnoreCase))
-            return "GitHub ha rifiutato la richiesta per troppi controlli. Riprova tra un'ora.";
-        return "Non è stato possibile controllare gli aggiornamenti.";
+            return "GitHub refused the request because of too many checks. Try again in an hour.";
+        return "Couldn't check for updates.";
     }
 }

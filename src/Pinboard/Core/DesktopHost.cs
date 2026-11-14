@@ -4,9 +4,9 @@ using System.Text;
 namespace Pinboard;
 
 /// <summary>
-/// Tiene le finestre dei widget subito sopra il desktop e sotto tutte le altre finestre.
-/// Quando "Mostra desktop" porta il desktop in primo piano, i widget diventano temporaneamente
-/// "sempre in primo piano" per restare visibili.
+/// Keeps the widget windows just above the desktop and below all other windows.
+/// When "Show desktop" brings the desktop to the foreground, the widgets temporarily become
+/// "always on top" so they stay visible.
 /// </summary>
 internal static class DesktopHost
 {
@@ -66,7 +66,7 @@ internal static class DesktopHost
         return sb.ToString();
     }
 
-    /// <summary>Finestra di primo livello che contiene le icone del desktop (Progman o WorkerW).</summary>
+    /// <summary>Top-level window that holds the desktop icons (Progman or WorkerW).</summary>
     public static IntPtr FindDesktopTopLevel()
     {
         IntPtr progman = FindWindow("Progman", null);
@@ -85,7 +85,7 @@ internal static class DesktopHost
         return found != IntPtr.Zero ? found : progman;
     }
 
-    /// <summary>Mette la finestra subito sopra il desktop (coordinate schermo, pixel).</summary>
+    /// <summary>Puts the window just above the desktop (screen coordinates, pixels).</summary>
     public static void PlaceAboveDesktop(IntPtr hwnd, int screenX, int screenY, int width, int height)
     {
         int style = GetWindowLong(hwnd, GWL_STYLE);
@@ -93,15 +93,15 @@ internal static class DesktopHost
         int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
         SetWindowLong(hwnd, GWL_EXSTYLE, (ex | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE) & ~WS_EX_APPWINDOW);
 
-        // Prima si toglie il flag topmost (lo mette "Sposta widget"): se la finestra fosse ancora topmost,
-        // metterla dopo il desktop la manderebbe sotto il desktop, nascosta.
+        // Clear the topmost flag first (set during "Show desktop"): if the window were still topmost,
+        // placing it after the desktop would send it below the desktop, hidden.
         SetWindowPos(hwnd, HWND_NOTOPMOST, screenX, screenY, width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
         SetWindowPos(hwnd, FindDesktopTopLevel(), screenX, screenY, width, height,
             SWP_NOACTIVATE | SWP_SHOWWINDOW);
         _desktopMode = false;
     }
 
-    /// <summary>Finestra normale in primo piano, per trascinarla o per provarla.</summary>
+    /// <summary>Regular always-on-top window, for testing the design (--floating).</summary>
     public static void Detach(IntPtr hwnd, int screenX, int screenY, int width, int height)
     {
         int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
@@ -113,9 +113,9 @@ internal static class DesktopHost
     private static string _lastForeground = "";
 
     /// <summary>
-    /// Da chiamare a intervalli per tutti i widget agganciati al desktop. Quando il desktop
-    /// passa in primo piano (Win+D) i widget diventano topmost; quando torna attiva un'altra
-    /// finestra, ridiventano normali subito sopra il desktop.
+    /// Call periodically for all the widgets on the desktop. When the desktop comes to the
+    /// foreground (Win+D) the widgets become topmost; when another window becomes active again,
+    /// they go back to normal, just above the desktop.
     /// </summary>
     public static void KeepVisible(IReadOnlyCollection<IntPtr> windows)
     {
@@ -127,7 +127,7 @@ internal static class DesktopHost
 
         if (fgClass != _lastForeground)
         {
-            App.Log($"Primo piano: '{fgClass}'");
+            App.Log($"Foreground: '{fgClass}'");
             _lastForeground = fgClass;
         }
 
@@ -140,7 +140,7 @@ internal static class DesktopHost
         {
             foreach (IntPtr hwnd in windows) SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, flags);
             _desktopMode = true;
-            App.Log("Desktop in primo piano: widget resi topmost.");
+            App.Log("Desktop in the foreground: widgets made topmost.");
         }
         else if (!desktopFocused && _desktopMode)
         {
@@ -152,13 +152,13 @@ internal static class DesktopHost
             }
             _desktopMode = false;
             _settleTicks = 8;
-            App.Log("Desktop non piu' in primo piano: widget rimessi sopra il desktop.");
+            App.Log("Desktop no longer in the foreground: widgets put back above the desktop.");
         }
         else if (!desktopFocused && _settleTicks > 0)
         {
-            // Uscendo da "Mostra desktop", Windows riporta il desktop in fondo solo dopo un attimo:
-            // fino ad allora "subito dopo il desktop" e' a meta' delle finestre. Per circa due secondi
-            // i widget si rimettono dopo il desktop, finche' non e' tornato al suo posto.
+            // When leaving "Show desktop", Windows moves the desktop back to the bottom only after a moment:
+            // until then "just after the desktop" is halfway through the windows. For about two seconds
+            // the widgets are placed after the desktop again, until it is back in its place.
             _settleTicks--;
             IntPtr desktop = FindDesktopTopLevel();
             foreach (IntPtr hwnd in windows) SetWindowPos(hwnd, desktop, 0, 0, 0, 0, flags);

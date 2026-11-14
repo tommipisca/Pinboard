@@ -9,17 +9,17 @@ namespace Pinboard;
 public sealed class ClockDefinition : WidgetDefinition
 {
     public override string Type => "clock";
-    public override string Name => "Orologio";
+    public override string Name => "Clock";
     public override string Description =>
-        "Un orologio analogico con la lancetta dei secondi. Può seguire l'ora del computer " +
-        "o quella di un'altra città; la versione media aggiunge l'ora in cifre e la data.";
-    public override string Category => "Orologi";
+        "An analog clock with a second hand. It can follow your computer's time or another " +
+        "city's; the medium size adds the time in digits and the date.";
+    public override string Category => "Clocks";
     public override IReadOnlyList<WidgetSize> Sizes { get; } = new[] { Small, Medium };
     public override string DefaultAccent => "#FF9F0A";
     public override IReadOnlyList<string> Features { get; } = new[]
     {
-        "Ora del computer o di un'altra città",
-        "Lancetta dei secondi da mostrare o nascondere",
+        "Your computer's time or another city's",
+        "Second hand shown or hidden",
     };
 
     protected override void ApplyDefaults(WidgetInstance w) => w.Options["seconds"] = "true";
@@ -29,15 +29,15 @@ public sealed class ClockDefinition : WidgetDefinition
 
     public override string? Summary(WidgetInstance w)
     {
-        string where = ClockZone.Resolve(w).City ?? "ora del computer";
-        return w.Option("seconds", "true") == "true" ? where : where + ", senza secondi";
+        string where = ClockZone.Resolve(w).City ?? "computer time";
+        return w.Option("seconds", "true") == "true" ? where : where + ", no second hand";
     }
 
     public override FrameworkElement CreateOptionsEditor(WidgetInstance w, Action changed) =>
         new ClockOptionsEditor(w, changed);
 }
 
-/// <summary>Il fuso orario scelto per un orologio.</summary>
+/// <summary>The time zone chosen for a clock.</summary>
 internal static class ClockZone
 {
     private static readonly Dictionary<string, TimeZoneInfo?> Cache = new();
@@ -72,21 +72,21 @@ internal static class ClockZone
     public static DateTime Now(TimeZoneInfo? zone) =>
         zone == null ? DateTime.Now : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zone);
 
-    /// <summary>"+8 ore", "−1 ora", "+5 ore 30 min", "stessa ora".</summary>
+    /// <summary>"+8 hours", "−1 hour", "+5 hours 30 min", "same time".</summary>
     public static string Difference(TimeZoneInfo zone)
     {
         DateTime utc = DateTime.UtcNow;
         TimeSpan diff = zone.GetUtcOffset(utc) - TimeZoneInfo.Local.GetUtcOffset(utc);
-        if (diff == TimeSpan.Zero) return "stessa ora";
+        if (diff == TimeSpan.Zero) return "same time";
         string sign = diff < TimeSpan.Zero ? "−" : "+";
         diff = diff.Duration();
-        string hours = diff.Hours == 1 ? "1 ora" : $"{diff.Hours} ore";
+        string hours = diff.Hours == 1 ? "1 hour" : $"{diff.Hours} hours";
         if (diff.Minutes == 0) return sign + hours;
         return diff.Hours == 0 ? $"{sign}{diff.Minutes} min" : $"{sign}{hours} {diff.Minutes} min";
     }
 }
 
-/// <summary>Quadrante analogico di 170 x 170.</summary>
+/// <summary>Analog dial, 170 x 170.</summary>
 internal sealed class ClockDial : Canvas
 {
     private const double Size = 170;
@@ -203,7 +203,7 @@ internal sealed class ClockView : WidgetView
             _dial = new ClockDial(s, seconds, null);
             var where = new TextBlock
             {
-                Text = _city ?? "Ora locale",
+                Text = _city ?? "Local time",
                 FontFamily = Fonts.Text,
                 FontSize = 13,
                 FontWeight = FontWeights.SemiBold,
@@ -249,71 +249,71 @@ internal sealed class ClockView : WidgetView
         _dial.Show(now);
         if (_time == null || _date == null) return;
 
-        _time.Text = now.ToString("HH:mm", Fonts.Italian);
-        string date = now.ToString("dddd d MMMM", Fonts.Italian);
+        _time.Text = now.ToString("HH:mm", Fonts.Culture);
+        string date = now.ToString("dddd, MMMM d", Fonts.Culture);
         _date.Text = _zone == null ? date : $"{date}, {ClockZone.Difference(_zone)}";
     }
 }
 
-/// <summary>Una citta' o un fuso orario che l'orologio puo' seguire.</summary>
+/// <summary>A city or a time zone the clock can follow.</summary>
 internal sealed record ZoneChoice(string Id, string City, string Detail, string SearchKey);
 
 internal static class Cities
 {
-    // Citta' principali con il loro fuso IANA (su Windows .NET li converte da solo).
+    // Major cities with their IANA time zone (on Windows .NET converts them by itself).
     private static readonly (string City, string Country, string Iana)[] Known =
     {
-        ("Roma", "Italia", "Europe/Rome"), ("Milano", "Italia", "Europe/Rome"),
-        ("Londra", "Regno Unito", "Europe/London"), ("Dublino", "Irlanda", "Europe/Dublin"),
-        ("Lisbona", "Portogallo", "Europe/Lisbon"), ("Madrid", "Spagna", "Europe/Madrid"),
-        ("Barcellona", "Spagna", "Europe/Madrid"), ("Parigi", "Francia", "Europe/Paris"),
-        ("Bruxelles", "Belgio", "Europe/Brussels"), ("Amsterdam", "Paesi Bassi", "Europe/Amsterdam"),
-        ("Berlino", "Germania", "Europe/Berlin"), ("Monaco di Baviera", "Germania", "Europe/Berlin"),
-        ("Zurigo", "Svizzera", "Europe/Zurich"), ("Vienna", "Austria", "Europe/Vienna"),
-        ("Praga", "Repubblica Ceca", "Europe/Prague"), ("Varsavia", "Polonia", "Europe/Warsaw"),
-        ("Budapest", "Ungheria", "Europe/Budapest"), ("Bucarest", "Romania", "Europe/Bucharest"),
-        ("Atene", "Grecia", "Europe/Athens"), ("Istanbul", "Turchia", "Europe/Istanbul"),
-        ("Kiev", "Ucraina", "Europe/Kiev"), ("Mosca", "Russia", "Europe/Moscow"),
-        ("Copenaghen", "Danimarca", "Europe/Copenhagen"), ("Oslo", "Norvegia", "Europe/Oslo"),
-        ("Stoccolma", "Svezia", "Europe/Stockholm"), ("Helsinki", "Finlandia", "Europe/Helsinki"),
-        ("Reykjavík", "Islanda", "Atlantic/Reykjavik"),
-        ("New York", "Stati Uniti", "America/New_York"), ("Washington", "Stati Uniti", "America/New_York"),
-        ("Boston", "Stati Uniti", "America/New_York"), ("Miami", "Stati Uniti", "America/New_York"),
-        ("Chicago", "Stati Uniti", "America/Chicago"), ("Dallas", "Stati Uniti", "America/Chicago"),
-        ("Denver", "Stati Uniti", "America/Denver"), ("Phoenix", "Stati Uniti", "America/Phoenix"),
-        ("Los Angeles", "Stati Uniti", "America/Los_Angeles"), ("San Francisco", "Stati Uniti", "America/Los_Angeles"),
-        ("Seattle", "Stati Uniti", "America/Los_Angeles"), ("Las Vegas", "Stati Uniti", "America/Los_Angeles"),
-        ("Anchorage", "Stati Uniti", "America/Anchorage"), ("Honolulu", "Stati Uniti", "Pacific/Honolulu"),
+        ("Rome", "Italy", "Europe/Rome"), ("Milan", "Italy", "Europe/Rome"),
+        ("London", "United Kingdom", "Europe/London"), ("Dublin", "Ireland", "Europe/Dublin"),
+        ("Lisbon", "Portugal", "Europe/Lisbon"), ("Madrid", "Spain", "Europe/Madrid"),
+        ("Barcelona", "Spain", "Europe/Madrid"), ("Paris", "France", "Europe/Paris"),
+        ("Brussels", "Belgium", "Europe/Brussels"), ("Amsterdam", "Netherlands", "Europe/Amsterdam"),
+        ("Berlin", "Germany", "Europe/Berlin"), ("Munich", "Germany", "Europe/Berlin"),
+        ("Zurich", "Switzerland", "Europe/Zurich"), ("Vienna", "Austria", "Europe/Vienna"),
+        ("Prague", "Czech Republic", "Europe/Prague"), ("Warsaw", "Poland", "Europe/Warsaw"),
+        ("Budapest", "Hungary", "Europe/Budapest"), ("Bucharest", "Romania", "Europe/Bucharest"),
+        ("Athens", "Greece", "Europe/Athens"), ("Istanbul", "Turkey", "Europe/Istanbul"),
+        ("Kyiv", "Ukraine", "Europe/Kiev"), ("Moscow", "Russia", "Europe/Moscow"),
+        ("Copenhagen", "Denmark", "Europe/Copenhagen"), ("Oslo", "Norway", "Europe/Oslo"),
+        ("Stockholm", "Sweden", "Europe/Stockholm"), ("Helsinki", "Finland", "Europe/Helsinki"),
+        ("Reykjavík", "Iceland", "Atlantic/Reykjavik"),
+        ("New York", "United States", "America/New_York"), ("Washington", "United States", "America/New_York"),
+        ("Boston", "United States", "America/New_York"), ("Miami", "United States", "America/New_York"),
+        ("Chicago", "United States", "America/Chicago"), ("Dallas", "United States", "America/Chicago"),
+        ("Denver", "United States", "America/Denver"), ("Phoenix", "United States", "America/Phoenix"),
+        ("Los Angeles", "United States", "America/Los_Angeles"), ("San Francisco", "United States", "America/Los_Angeles"),
+        ("Seattle", "United States", "America/Los_Angeles"), ("Las Vegas", "United States", "America/Los_Angeles"),
+        ("Anchorage", "United States", "America/Anchorage"), ("Honolulu", "United States", "Pacific/Honolulu"),
         ("Toronto", "Canada", "America/Toronto"), ("Montréal", "Canada", "America/Toronto"),
-        ("Vancouver", "Canada", "America/Vancouver"), ("Città del Messico", "Messico", "America/Mexico_City"),
-        ("L'Avana", "Cuba", "America/Havana"), ("Bogotá", "Colombia", "America/Bogota"),
-        ("Lima", "Perù", "America/Lima"), ("Caracas", "Venezuela", "America/Caracas"),
-        ("Santiago", "Cile", "America/Santiago"), ("Buenos Aires", "Argentina", "America/Argentina/Buenos_Aires"),
-        ("San Paolo", "Brasile", "America/Sao_Paulo"), ("Rio de Janeiro", "Brasile", "America/Sao_Paulo"),
-        ("Casablanca", "Marocco", "Africa/Casablanca"), ("Il Cairo", "Egitto", "Africa/Cairo"),
+        ("Vancouver", "Canada", "America/Vancouver"), ("Mexico City", "Mexico", "America/Mexico_City"),
+        ("Havana", "Cuba", "America/Havana"), ("Bogotá", "Colombia", "America/Bogota"),
+        ("Lima", "Peru", "America/Lima"), ("Caracas", "Venezuela", "America/Caracas"),
+        ("Santiago", "Chile", "America/Santiago"), ("Buenos Aires", "Argentina", "America/Argentina/Buenos_Aires"),
+        ("São Paulo", "Brazil", "America/Sao_Paulo"), ("Rio de Janeiro", "Brazil", "America/Sao_Paulo"),
+        ("Casablanca", "Morocco", "Africa/Casablanca"), ("Cairo", "Egypt", "Africa/Cairo"),
         ("Lagos", "Nigeria", "Africa/Lagos"), ("Nairobi", "Kenya", "Africa/Nairobi"),
-        ("Johannesburg", "Sudafrica", "Africa/Johannesburg"), ("Città del Capo", "Sudafrica", "Africa/Johannesburg"),
-        ("Gerusalemme", "Israele", "Asia/Jerusalem"), ("Tel Aviv", "Israele", "Asia/Jerusalem"),
-        ("Riad", "Arabia Saudita", "Asia/Riyadh"), ("Doha", "Qatar", "Asia/Qatar"),
-        ("Dubai", "Emirati Arabi Uniti", "Asia/Dubai"), ("Abu Dhabi", "Emirati Arabi Uniti", "Asia/Dubai"),
-        ("Teheran", "Iran", "Asia/Tehran"), ("Karachi", "Pakistan", "Asia/Karachi"),
-        ("Mumbai", "India", "Asia/Kolkata"), ("Nuova Delhi", "India", "Asia/Kolkata"),
+        ("Johannesburg", "South Africa", "Africa/Johannesburg"), ("Cape Town", "South Africa", "Africa/Johannesburg"),
+        ("Jerusalem", "Israel", "Asia/Jerusalem"), ("Tel Aviv", "Israel", "Asia/Jerusalem"),
+        ("Riyadh", "Saudi Arabia", "Asia/Riyadh"), ("Doha", "Qatar", "Asia/Qatar"),
+        ("Dubai", "United Arab Emirates", "Asia/Dubai"), ("Abu Dhabi", "United Arab Emirates", "Asia/Dubai"),
+        ("Tehran", "Iran", "Asia/Tehran"), ("Karachi", "Pakistan", "Asia/Karachi"),
+        ("Mumbai", "India", "Asia/Kolkata"), ("New Delhi", "India", "Asia/Kolkata"),
         ("Bangalore", "India", "Asia/Kolkata"), ("Kathmandu", "Nepal", "Asia/Kathmandu"),
-        ("Dacca", "Bangladesh", "Asia/Dhaka"), ("Bangkok", "Thailandia", "Asia/Bangkok"),
-        ("Hanoi", "Vietnam", "Asia/Bangkok"), ("Giacarta", "Indonesia", "Asia/Jakarta"),
-        ("Singapore", "Singapore", "Asia/Singapore"), ("Kuala Lumpur", "Malesia", "Asia/Kuala_Lumpur"),
-        ("Manila", "Filippine", "Asia/Manila"), ("Hong Kong", "Cina", "Asia/Hong_Kong"),
-        ("Pechino", "Cina", "Asia/Shanghai"), ("Shanghai", "Cina", "Asia/Shanghai"),
-        ("Taipei", "Taiwan", "Asia/Taipei"), ("Seul", "Corea del Sud", "Asia/Seoul"),
-        ("Tokyo", "Giappone", "Asia/Tokyo"), ("Osaka", "Giappone", "Asia/Tokyo"),
+        ("Dhaka", "Bangladesh", "Asia/Dhaka"), ("Bangkok", "Thailand", "Asia/Bangkok"),
+        ("Hanoi", "Vietnam", "Asia/Bangkok"), ("Jakarta", "Indonesia", "Asia/Jakarta"),
+        ("Singapore", "Singapore", "Asia/Singapore"), ("Kuala Lumpur", "Malaysia", "Asia/Kuala_Lumpur"),
+        ("Manila", "Philippines", "Asia/Manila"), ("Hong Kong", "China", "Asia/Hong_Kong"),
+        ("Beijing", "China", "Asia/Shanghai"), ("Shanghai", "China", "Asia/Shanghai"),
+        ("Taipei", "Taiwan", "Asia/Taipei"), ("Seoul", "South Korea", "Asia/Seoul"),
+        ("Tokyo", "Japan", "Asia/Tokyo"), ("Osaka", "Japan", "Asia/Tokyo"),
         ("Perth", "Australia", "Australia/Perth"), ("Adelaide", "Australia", "Australia/Adelaide"),
         ("Brisbane", "Australia", "Australia/Brisbane"), ("Sydney", "Australia", "Australia/Sydney"),
-        ("Melbourne", "Australia", "Australia/Melbourne"), ("Auckland", "Nuova Zelanda", "Pacific/Auckland"),
+        ("Melbourne", "Australia", "Australia/Melbourne"), ("Auckland", "New Zealand", "Pacific/Auckland"),
     };
 
     private static List<ZoneChoice>? _all;
 
-    /// <summary>Le citta' note, poi tutti i fusi orari di Windows.</summary>
+    /// <summary>The known cities, then all the Windows time zones.</summary>
     public static IReadOnlyList<ZoneChoice> All => _all ??= Build();
 
     private static List<ZoneChoice> Build()
@@ -326,7 +326,7 @@ internal static class Cities
         }
         foreach (TimeZoneInfo zone in TimeZoneInfo.GetSystemTimeZones())
         {
-            // "(UTC+09:00) Osaka, Sapporo, Tokio" -> "Osaka"
+            // "(UTC+09:00) Osaka, Sapporo, Tokyo" -> "Osaka"
             string name = zone.DisplayName;
             int close = name.IndexOf(") ", StringComparison.Ordinal);
             string places = close >= 0 ? name[(close + 2)..] : name;
@@ -361,7 +361,7 @@ internal static class Cities
     }
 }
 
-/// <summary>Opzioni dell'orologio nella finestra di personalizzazione.</summary>
+/// <summary>Clock options in the customization window.</summary>
 internal sealed class ClockOptionsEditor : StackPanel
 {
     private readonly WidgetInstance _w;
@@ -377,7 +377,7 @@ internal sealed class ClockOptionsEditor : StackPanel
 
         var seconds = new CheckBox
         {
-            Content = "Mostra la lancetta dei secondi",
+            Content = "Show the second hand",
             IsChecked = w.Option("seconds", "true") == "true",
         };
         seconds.SetResourceReference(StyleProperty, "Switch");
@@ -388,16 +388,16 @@ internal sealed class ClockOptionsEditor : StackPanel
         };
 
         bool other = w.Option("zone").Length > 0;
-        var mode = UiKit.Segmented(new[] { ("system", "Del computer"), ("city", "Di un'altra città") },
+        var mode = UiKit.Segmented(new[] { ("system", "Computer's"), ("city", "Another city's") },
             other ? "city" : "system", OnMode);
 
-        var search = new TextBox { Tag = "Cerca una città o un fuso orario" };
+        var search = new TextBox { Tag = "Search for a city or time zone" };
         search.SetResourceReference(StyleProperty, "SearchBox");
-        AutomationName(search, "Cerca una città o un fuso orario");
+        AutomationName(search, "Search for a city or time zone");
         search.TextChanged += (_, _) => Fill(search.Text);
 
         _results = new ListBox { Height = 188, Margin = new Thickness(0, 8, 0, 0) };
-        AutomationName(_results, "Città e fusi orari");
+        AutomationName(_results, "Cities and time zones");
         _results.SelectionChanged += (_, _) =>
         {
             if (_results.SelectedItem is ListBoxItem { Tag: ZoneChoice c }) Choose(c);
@@ -413,8 +413,8 @@ internal sealed class ClockOptionsEditor : StackPanel
             Children = { search, _results, _chosen },
         };
 
-        Children.Add(UiKit.Field("Secondi", seconds));
-        Children.Add(UiKit.Field("Ora", new StackPanel { Children = { mode, _picker } }, alignTop: true));
+        Children.Add(UiKit.Field("Seconds", seconds));
+        Children.Add(UiKit.Field("Time", new StackPanel { Children = { mode, _picker } }, alignTop: true));
 
         Fill("");
         UpdateChosen();
@@ -473,8 +473,8 @@ internal sealed class ClockOptionsEditor : StackPanel
     {
         var (zone, city) = ClockZone.Resolve(_w);
         _chosen.Text = zone == null
-            ? "Scegli una città dall'elenco."
-            : $"Mostra l'ora di {city} ({ClockZone.Difference(zone)} rispetto a qui).";
+            ? "Pick a city from the list."
+            : $"Shows the time in {city} ({ClockZone.Difference(zone)} from here).";
         _chosen.Visibility = _picker.Visibility;
     }
 }

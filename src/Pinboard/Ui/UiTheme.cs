@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 
 namespace Pinboard;
 
-/// <summary>Colori della dashboard, in chiaro o scuro come le app di Windows.</summary>
+/// <summary>Dashboard colors, light or dark like Windows apps.</summary>
 internal static class UiTheme
 {
     public static bool Dark { get; private set; }
@@ -45,7 +45,7 @@ internal static class UiTheme
         r["Cork"] = CorkTexture.Create(Dark);
     }
 
-    // --- Barra del titolo nello stesso colore della finestra (Windows 11) -----------------
+    // --- Title bar in the same color as the window (Windows 11) ------------------------
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
@@ -62,7 +62,7 @@ internal static class UiTheme
     }
 }
 
-/// <summary>Trama di sughero generata al volo: base calda con granelli chiari e scuri.</summary>
+/// <summary>Cork texture generated on the fly: a warm base with light and dark specks.</summary>
 internal static class CorkTexture
 {
     public static Brush Create(bool dark)
@@ -78,7 +78,7 @@ internal static class CorkTexture
             Put(px, i, r + v, g + v, b + v);
         }
 
-        // Granelli: per lo piu' scuri, qualcuno chiaro, a volte allungati.
+        // Specks: mostly dark, some light, sometimes elongated.
         for (int k = 0; k < n * n / 7; k++)
         {
             int x = rnd.Next(n), y = rnd.Next(n);

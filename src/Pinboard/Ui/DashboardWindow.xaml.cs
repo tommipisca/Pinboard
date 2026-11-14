@@ -5,7 +5,7 @@ using System.Windows.Threading;
 
 namespace Pinboard;
 
-/// <summary>La finestra principale: catalogo, widget sul desktop e impostazioni.</summary>
+/// <summary>The main window: catalog, widgets on the desktop and settings.</summary>
 public partial class DashboardWindow : Window
 {
     private const string AllFilter = "all";
@@ -49,7 +49,7 @@ public partial class DashboardWindow : Window
         UiTheme.ApplyChrome(this);
     }
 
-    /// <summary>Chiudere la finestra la nasconde: i widget restano sul desktop.</summary>
+    /// <summary>Closing the window only hides it: the widgets stay on the desktop.</summary>
     protected override void OnClosing(CancelEventArgs e)
     {
         if (App.Exiting) return;
@@ -59,8 +59,8 @@ public partial class DashboardWindow : Window
         {
             WidgetManager.Settings.CloseHintShown = true;
             WidgetManager.Settings.Save();
-            WidgetManager.ShowTrayTip("Pinboard è ancora attivo",
-                "I widget restano sul desktop. Per riaprire Pinboard fai clic sulla sua icona accanto all'orologio.");
+            WidgetManager.ShowTrayTip("Pinboard is still running",
+                "Your widgets stay on the desktop. To open Pinboard again, click its icon next to the clock.");
         }
     }
 
@@ -91,7 +91,7 @@ public partial class DashboardWindow : Window
     private void UpdateCount()
     {
         int n = WidgetManager.Widgets.Count;
-        CountText.Text = n.ToString(Fonts.Italian);
+        CountText.Text = n.ToString(Fonts.Culture);
         CountBadge.Visibility = n > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -138,13 +138,13 @@ public partial class DashboardWindow : Window
         return dock;
     }
 
-    // --- Catalogo -----------------------------------------------------------------------
+    // --- Catalog ------------------------------------------------------------------------
 
     private void ShowCatalog()
     {
-        var search = new TextBox { Tag = "Cerca un widget", Width = 260, Text = _search };
+        var search = new TextBox { Tag = "Search widgets", Width = 260, Text = _search };
         search.SetResourceReference(StyleProperty, "SearchBox");
-        System.Windows.Automation.AutomationProperties.SetName(search, "Cerca un widget");
+        System.Windows.Automation.AutomationProperties.SetName(search, "Search widgets");
         search.TextChanged += (_, _) =>
         {
             _search = search.Text;
@@ -163,12 +163,12 @@ public partial class DashboardWindow : Window
             };
             chips.Children.Add(rb);
         }
-        Chip(AllFilter, "Tutti");
-        Chip(FavoritesFilter, "Preferiti");
+        Chip(AllFilter, "All");
+        Chip(FavoritesFilter, "Favorites");
         foreach (string category in WidgetCatalog.Categories) Chip("cat:" + category, category);
 
         var page = new StackPanel { Margin = new Thickness(40, 32, 40, 32) };
-        page.Children.Add(Header("Catalogo", "Scegli un widget e mettilo sul desktop.", search));
+        page.Children.Add(Header("Catalog", "Pick a widget and put it on your desktop.", search));
         page.Children.Add(chips);
         SetPage(page, ShowCatalog);
 
@@ -193,10 +193,10 @@ public partial class DashboardWindow : Window
         if (defs.Count == 0)
         {
             string message = q.Length > 0
-                ? $"Nessun widget corrisponde a “{_search.Trim()}”. Prova con un'altra parola."
+                ? $"No widgets match “{_search.Trim()}”. Try another word."
                 : _filter == FavoritesFilter
-                    ? "Non hai ancora preferiti. Tocca la stella su un widget per ritrovarlo qui."
-                    : "Nessun widget in questa categoria.";
+                    ? "You have no favorites yet. Tap the star on a widget to find it here."
+                    : "No widgets in this category.";
             _cards.Content = UiKit.Text(message, "Text.Body", new Thickness(0, 24, 0, 0));
             return;
         }
@@ -218,13 +218,13 @@ public partial class DashboardWindow : Window
             {
                 stage,
                 UiKit.Text(def.Name, "Text.Label", new Thickness(2, 12, 0, 0)),
-                UiKit.Text(string.Join(" o ", def.Sizes.Select(s => s.Name.ToLower(Fonts.Italian))).Capitalize(),
+                UiKit.Text(string.Join(" or ", def.Sizes.Select(s => s.Name.ToLower(Fonts.Culture))).Capitalize(),
                     "Text.Caption", new Thickness(2, 2, 0, 0)),
             },
         };
         var open = new Button { Content = body };
         open.SetResourceReference(StyleProperty, "Button.Card");
-        System.Windows.Automation.AutomationProperties.SetName(open, $"{def.Name}, apri i dettagli");
+        System.Windows.Automation.AutomationProperties.SetName(open, $"{def.Name}, open details");
         open.Click += (_, _) => ShowDetail(def);
 
         var star = UiKit.Star(def.Name, WidgetManager.IsFavorite(def.Type), on =>
@@ -240,7 +240,7 @@ public partial class DashboardWindow : Window
         return new Grid { Margin = new Thickness(0, 0, 28, 28), Children = { open, star } };
     }
 
-    // --- Dettaglio ----------------------------------------------------------------------
+    // --- Details ------------------------------------------------------------------------
 
     private void ShowDetail(WidgetDefinition def, string? size = null)
     {
@@ -267,9 +267,9 @@ public partial class DashboardWindow : Window
         var features = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
         var all = new List<string>();
         if (def.Sizes.Count > 1)
-            all.Add("Taglia " + string.Join(" o ", def.Sizes.Select(s => s.Name.ToLower(Fonts.Italian))));
-        all.Add("Tema, colore di sfondo e colore d'accento");
-        all.Add("Trasparenza dello sfondo");
+            all.Add("Size: " + string.Join(" or ", def.Sizes.Select(s => s.Name.ToLower(Fonts.Culture))));
+        all.Add("Theme, background color and accent color");
+        all.Add("Background transparency");
         all.AddRange(def.Features);
         foreach (string f in all)
         {
@@ -281,7 +281,7 @@ public partial class DashboardWindow : Window
             features.Children.Add(row);
         }
 
-        var add = UiKit.Button("Aggiungi al desktop", "Button.Primary", () => Customize(def, def.CreateInstance(size), isNew: true));
+        var add = UiKit.Button("Add to desktop", "Button.Primary", () => Customize(def, def.CreateInstance(size), isNew: true));
         add.HorizontalAlignment = HorizontalAlignment.Left;
         add.Margin = new Thickness(0, 28, 0, 0);
         add.Padding = new Thickness(20, 9, 20, 9);
@@ -294,7 +294,7 @@ public partial class DashboardWindow : Window
                 title,
                 UiKit.Text(def.Category, "Text.Caption", new Thickness(0, 2, 0, 0)),
                 UiKit.Text(def.Description, "Text.Body", new Thickness(0, 16, 0, 0)),
-                UiKit.Text("Cosa puoi personalizzare", "Text.Label", new Thickness(0, 26, 0, 0)),
+                UiKit.Text("What you can customize", "Text.Label", new Thickness(0, 26, 0, 0)),
                 features,
                 add,
             },
@@ -308,7 +308,7 @@ public partial class DashboardWindow : Window
         columns.Children.Add(left);
         columns.Children.Add(right);
 
-        var back = UiKit.Button("   Catalogo", "Button.Ghost", ShowCatalog);
+        var back = UiKit.Button("Catalog", "Button.Ghost", ShowCatalog);
         back.SetResourceReference(FontFamilyProperty, "Font.Text");
         back.Content = new StackPanel
         {
@@ -323,10 +323,10 @@ public partial class DashboardWindow : Window
                     VerticalAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(0, 1, 10, 0),
                 },
-                new TextBlock { Text = "Catalogo" },
+                new TextBlock { Text = "Catalog" },
             },
         };
-        System.Windows.Automation.AutomationProperties.SetName(back, "Torna al catalogo");
+        System.Windows.Automation.AutomationProperties.SetName(back, "Back to the catalog");
         back.HorizontalAlignment = HorizontalAlignment.Left;
         back.Margin = new Thickness(-10, 0, 0, 18);
 
@@ -350,26 +350,26 @@ public partial class DashboardWindow : Window
         }
     }
 
-    // --- Sul desktop --------------------------------------------------------------------
+    // --- On your desktop ----------------------------------------------------------------
 
     private void ShowDesktop()
     {
         bool editing = WidgetManager.Editing;
-        var move = UiKit.Button(editing ? "Blocca posizione" : "Sposta widget",
+        var move = UiKit.Button(editing ? "Lock position" : "Move widgets",
             editing ? "Button.Primary" : "Button.Secondary", () => WidgetManager.SetEditing(!WidgetManager.Editing));
 
         string caption = editing
-            ? "Trascina i widget dove vuoi sul desktop, poi premi Blocca posizione."
-            : "I widget che hai messo sul desktop. Restano lì anche quando chiudi questa finestra.";
+            ? "Drag the widgets anywhere on your desktop, then press Lock position."
+            : "The widgets you put on your desktop. They stay there even when you close this window.";
 
         var page = new StackPanel { Margin = new Thickness(40, 32, 40, 32) };
         var list = WidgetManager.Widgets.ToList();
-        page.Children.Add(Header("Sul desktop", caption, list.Count > 0 ? move : null));
+        page.Children.Add(Header("On your desktop", caption, list.Count > 0 ? move : null));
         SetPage(page, ShowDesktop);
 
         if (list.Count == 0)
         {
-            var open = UiKit.Button("Apri il catalogo", "Button.Primary", () => NavCatalog.IsChecked = true);
+            var open = UiKit.Button("Open the catalog", "Button.Primary", () => NavCatalog.IsChecked = true);
             open.HorizontalAlignment = HorizontalAlignment.Left;
             open.Margin = new Thickness(0, 18, 0, 0);
             page.Children.Add(new StackPanel
@@ -377,8 +377,8 @@ public partial class DashboardWindow : Window
                 Margin = new Thickness(0, 30, 0, 0),
                 Children =
                 {
-                    UiKit.Text("Il desktop è ancora vuoto", "Text.Heading"),
-                    UiKit.Text("Scegli un widget dal catalogo e aggiungilo: lo ritroverai qui per personalizzarlo.",
+                    UiKit.Text("Your desktop is still empty", "Text.Heading"),
+                    UiKit.Text("Pick a widget from the catalog and add it: you'll find it here to customize it.",
                         "Text.Body", new Thickness(0, 6, 0, 0)),
                     open,
                 },
@@ -410,12 +410,12 @@ public partial class DashboardWindow : Window
             },
         };
 
-        var customize = UiKit.Button("Personalizza", "Button.Secondary", () => Customize(def, w, isNew: false));
-        var remove = UiKit.Button("Rimuovi", "Button.Ghost", () => WidgetManager.Remove(w.Id));
+        var customize = UiKit.Button("Customize", "Button.Secondary", () => Customize(def, w, isNew: false));
+        var remove = UiKit.Button("Remove", "Button.Ghost", () => WidgetManager.Remove(w.Id));
         remove.SetResourceReference(ForegroundProperty, "Danger");
         remove.Margin = new Thickness(6, 0, 0, 0);
-        System.Windows.Automation.AutomationProperties.SetName(customize, $"Personalizza {def.Name}");
-        System.Windows.Automation.AutomationProperties.SetName(remove, $"Rimuovi {def.Name} dal desktop");
+        System.Windows.Automation.AutomationProperties.SetName(customize, $"Customize {def.Name}");
+        System.Windows.Automation.AutomationProperties.SetName(remove, $"Remove {def.Name} from the desktop");
         var buttons = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -449,52 +449,52 @@ public partial class DashboardWindow : Window
     private static string Describe(WidgetDefinition def, WidgetInstance w)
     {
         var parts = new List<string> { def.SizeOf(w).Name };
-        parts.Add(w.Theme switch { "light" => "tema chiaro", "dark" => "tema scuro", _ => "tema di Windows" });
+        parts.Add(w.Theme switch { "light" => "light theme", "dark" => "dark theme", _ => "Windows theme" });
         int transparency = (int)Math.Round((1 - w.Opacity) * 100);
-        parts.Add(transparency == 0 ? "sfondo pieno" : $"trasparenza {transparency}%");
+        parts.Add(transparency == 0 ? "solid background" : $"{transparency}% transparency");
         if (def.Summary(w) is string extra) parts.Add(extra);
         return string.Join(", ", parts);
     }
 
-    // --- Impostazioni -------------------------------------------------------------------
+    // --- Settings -----------------------------------------------------------------------
 
     private void ShowSettings()
     {
         var startup = new CheckBox { IsChecked = AutoStart.IsEnabled() };
         startup.SetResourceReference(StyleProperty, "Switch");
-        System.Windows.Automation.AutomationProperties.SetName(startup, "Avvia con Windows");
+        System.Windows.Automation.AutomationProperties.SetName(startup, "Start with Windows");
         startup.Click += (_, _) => AutoStart.Set(startup.IsChecked == true);
 
-        var move = UiKit.Button(WidgetManager.Editing ? "Blocca posizione" : "Sposta widget",
+        var move = UiKit.Button(WidgetManager.Editing ? "Lock position" : "Move widgets",
             WidgetManager.Editing ? "Button.Primary" : "Button.Secondary",
             () => WidgetManager.SetEditing(!WidgetManager.Editing));
         move.IsEnabled = WidgetManager.Widgets.Count > 0;
 
-        var exit = UiKit.Button("Esci da Pinboard", "Button.Secondary", () => App.Quit());
+        var exit = UiKit.Button("Quit Pinboard", "Button.Secondary", () => App.Quit());
 
         var general = new StackPanel();
-        Row(general, "Avvia con Windows", "I widget compaiono appena accedi, senza aprire questa finestra.", startup);
-        Row(general, "Posizione dei widget", "Rendili trascinabili per spostarli dove vuoi sul desktop, poi bloccali.", move);
-        Row(general, "Esci", "Chiudendo questa finestra Pinboard resta attivo accanto all'orologio. " +
-                    "Per toglierlo del tutto, compresi i widget, esci.", exit, last: true);
+        Row(general, "Start with Windows", "Your widgets appear as soon as you sign in, without opening this window.", startup);
+        Row(general, "Widget position", "Make the widgets draggable to move them anywhere on your desktop, then lock them.", move);
+        Row(general, "Quit", "When you close this window, Pinboard keeps running next to the clock. " +
+                    "To close it completely, widgets included, quit.", exit, last: true);
 
         var updates = new StackPanel();
         bool supported = Updater.Status != UpdateStatus.Unsupported;
-        string version = "Versione " + Updater.CurrentVersion + (Updater.IsPortable ? " (portable)" : "");
+        string version = "Version " + Updater.CurrentVersion + (Updater.IsPortable ? " (portable)" : "");
         Row(updates, version, UpdateCaption(), UpdateButton(), last: !supported);
         if (supported)
         {
             var auto = new CheckBox { IsChecked = WidgetManager.Settings.AutoUpdate };
             auto.SetResourceReference(StyleProperty, "Switch");
-            System.Windows.Automation.AutomationProperties.SetName(auto, "Controlla automaticamente");
+            System.Windows.Automation.AutomationProperties.SetName(auto, "Check automatically");
             auto.Click += (_, _) =>
             {
                 WidgetManager.Settings.AutoUpdate = auto.IsChecked == true;
                 WidgetManager.Settings.Save();
                 Updater.Schedule();
             };
-            Row(updates, "Controlla automaticamente",
-                "All'avvio e ogni 6 ore. Le nuove versioni si scaricano da sole e si installano quando esci.",
+            Row(updates, "Check automatically",
+                "At startup and every 6 hours. New versions download by themselves and install when you quit.",
                 auto, last: true);
         }
 
@@ -505,9 +505,9 @@ public partial class DashboardWindow : Window
             HorizontalAlignment = HorizontalAlignment.Left,
             Children =
             {
-                Header("Impostazioni", "Come si comporta Pinboard sul tuo computer."),
+                Header("Settings", "How Pinboard behaves on your computer."),
                 Card(general),
-                UiKit.Text("Aggiornamenti", "Text.Heading", new Thickness(2, 28, 0, 12)),
+                UiKit.Text("Updates", "Text.Heading", new Thickness(2, 28, 0, 12)),
                 Card(updates),
             },
         };
@@ -545,18 +545,18 @@ public partial class DashboardWindow : Window
     private static string UpdateCaption()
     {
         string last = Updater.LastCheck is DateTime t
-            ? $" Ultimo controllo: {(t.Date == DateTime.Today ? "oggi" : t.ToString("d MMMM", Fonts.Italian))} alle {t:HH:mm}."
+            ? $" Last checked {(t.Date == DateTime.Today ? "today" : t.ToString("MMMM d", Fonts.Culture))} at {t:HH:mm}."
             : "";
         return Updater.Status switch
         {
             UpdateStatus.Unsupported =>
-                "Gli aggiornamenti funzionano nella versione installata e in quella portable scaricate dalle release.",
-            UpdateStatus.Checking => "Controllo in corso…",
-            UpdateStatus.UpToDate => "Hai l'ultima versione." + last,
-            UpdateStatus.Downloading => $"Scarico la versione {Updater.NewVersion} ({Updater.Percent}%).",
-            UpdateStatus.Ready => $"La versione {Updater.NewVersion} è pronta: si installa quando esci da Pinboard.",
+                "Updates work in the installed and portable versions downloaded from the releases.",
+            UpdateStatus.Checking => "Checking…",
+            UpdateStatus.UpToDate => "You have the latest version." + last,
+            UpdateStatus.Downloading => $"Downloading version {Updater.NewVersion} ({Updater.Percent}%).",
+            UpdateStatus.Ready => $"Version {Updater.NewVersion} is ready: it installs when you quit Pinboard.",
             UpdateStatus.Error => Updater.Error + last,
-            _ => "Pinboard controlla da solo se ci sono nuove versioni.",
+            _ => "Pinboard checks for new versions by itself.",
         };
     }
 
@@ -565,15 +565,15 @@ public partial class DashboardWindow : Window
         switch (Updater.Status)
         {
             case UpdateStatus.Unsupported:
-                return UiKit.Button("Apri le release", "Button.Secondary", () =>
+                return UiKit.Button("Open releases", "Button.Secondary", () =>
                     System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Updater.ReleasesUrl)
                     {
                         UseShellExecute = true,
                     }));
             case UpdateStatus.Ready:
-                return UiKit.Button("Riavvia e aggiorna", "Button.Primary", Updater.RestartAndUpdate);
+                return UiKit.Button("Restart and update", "Button.Primary", Updater.RestartAndUpdate);
             default:
-                var check = UiKit.Button("Controlla ora", "Button.Secondary", () => _ = Updater.CheckAsync());
+                var check = UiKit.Button("Check now", "Button.Secondary", () => _ = Updater.CheckAsync());
                 check.IsEnabled = Updater.Status is not (UpdateStatus.Checking or UpdateStatus.Downloading);
                 return check;
         }
@@ -583,5 +583,5 @@ public partial class DashboardWindow : Window
 internal static class StringExtensions
 {
     public static string Capitalize(this string s) =>
-        s.Length == 0 ? s : char.ToUpper(s[0], Fonts.Italian) + s[1..];
+        s.Length == 0 ? s : char.ToUpper(s[0], Fonts.Culture) + s[1..];
 }

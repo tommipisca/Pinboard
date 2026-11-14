@@ -8,7 +8,7 @@ using System.Windows.Shapes;
 
 namespace Pinboard;
 
-/// <summary>Pezzi d'interfaccia condivisi da dashboard e finestra di personalizzazione.</summary>
+/// <summary>UI pieces shared by the dashboard and the customization window.</summary>
 internal static class UiKit
 {
     public static TextBlock Text(string text, string style, Thickness? margin = null)
@@ -31,9 +31,9 @@ internal static class UiKit
         var star = new ToggleButton { IsChecked = on };
         star.SetResourceReference(FrameworkElement.StyleProperty, "StarToggle");
         void Describe() => AutomationProperties.SetName(star,
-            star.IsChecked == true ? $"Togli {widgetName} dai preferiti" : $"Aggiungi {widgetName} ai preferiti");
+            star.IsChecked == true ? $"Remove {widgetName} from favorites" : $"Add {widgetName} to favorites");
         Describe();
-        star.ToolTip = new ToolTip { Content = "Preferito" };
+        star.ToolTip = new ToolTip { Content = "Favorite" };
         star.Click += (_, _) =>
         {
             Describe();
@@ -42,7 +42,7 @@ internal static class UiKit
         return star;
     }
 
-    /// <summary>Riga di un modulo: etichetta a sinistra, controllo a destra.</summary>
+    /// <summary>A form row: label on the left, control on the right.</summary>
     public static FrameworkElement Field(string label, UIElement control, bool alignTop = false)
     {
         var grid = new Grid { Margin = new Thickness(0, 0, 0, 18) };
@@ -57,7 +57,7 @@ internal static class UiKit
         return grid;
     }
 
-    /// <summary>Scelta tra poche opzioni, come i segmenti dei controlli di Windows.</summary>
+    /// <summary>A choice between a few options, like the segmented controls in Windows.</summary>
     public static FrameworkElement Segmented(IEnumerable<(string Value, string Label)> options, string selected,
         Action<string> changed)
     {
@@ -82,8 +82,8 @@ internal static class UiKit
     }
 
     /// <summary>
-    /// Campioni di colore: "automatico" (null), alcuni preimpostati e uno personalizzato che apre
-    /// il selettore di Windows.
+    /// Color swatches: "automatic" (null), a few presets and a custom one that opens
+    /// the Windows color picker.
     /// </summary>
     public static FrameworkElement Swatches(Brush autoLook, string autoName,
         IReadOnlyList<(string Hex, string Name)> presets, string? selected, Action<string?> changed)
@@ -123,7 +123,7 @@ internal static class UiKit
         }, 45);
         rainbow.Freeze();
         var custom = Make(!matched && ColorUtil.TryParse(selected, out Color c) ? ColorUtil.Brush(c) : rainbow,
-            "Scegli un colore", !matched);
+            "Pick a color", !matched);
         custom.Content = new TextBlock
         {
             Text = "",
@@ -158,7 +158,7 @@ internal static class UiKit
         return panel;
     }
 
-    /// <summary>Campione "automatico" diviso in diagonale tra chiaro e scuro.</summary>
+    /// <summary>"Automatic" swatch, split diagonally between light and dark.</summary>
     public static Brush SplitBrush(Color a, Color b)
     {
         var brush = new LinearGradientBrush(new GradientStopCollection
@@ -170,7 +170,7 @@ internal static class UiKit
     }
 }
 
-/// <summary>Pannello di sughero su cui un widget viene mostrato "appuntato" con una puntina.</summary>
+/// <summary>Cork board on which a widget is shown "pinned" with a push pin.</summary>
 internal sealed class CorkStage : Border
 {
     private readonly Viewbox _box;

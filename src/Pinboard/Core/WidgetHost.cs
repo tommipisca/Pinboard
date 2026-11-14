@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace Pinboard;
 
-/// <summary>Finestra trasparente senza bordi che tiene un widget sul desktop.</summary>
+/// <summary>Transparent borderless window that holds a widget on the desktop.</summary>
 public sealed class WidgetHost : Window
 {
     private IntPtr _hwnd;
@@ -20,9 +20,9 @@ public sealed class WidgetHost : Window
         AllowsTransparency = true;
         Background = Brushes.Transparent;
         ResizeMode = ResizeMode.NoResize;
-        // Niente ShowInTaskbar = false: WPF darebbe alla finestra un proprietario nascosto e una finestra
-        // con proprietario resta sempre sopra di lui, quindi non si potrebbe portare giu' fino al desktop.
-        // Fuori dalla barra delle applicazioni e da Alt+Tab la tiene WS_EX_TOOLWINDOW (DesktopHost).
+        // No ShowInTaskbar = false: WPF would give the window a hidden owner, and an owned window
+        // always stays above its owner, so it could not be sent down to the desktop.
+        // WS_EX_TOOLWINDOW (DesktopHost) keeps it out of the taskbar and Alt+Tab.
         ShowActivated = false;
         UseLayoutRounding = true;
         SnapsToDevicePixels = true;
@@ -35,7 +35,7 @@ public sealed class WidgetHost : Window
     internal IntPtr Handle => _hwnd;
     internal bool Editing { get; private set; }
 
-    /// <summary>Ridisegna il widget dopo un cambio di impostazioni o di tema.</summary>
+    /// <summary>Redraws the widget after a change of settings or theme.</summary>
     public void Rebuild()
     {
         WidgetSize size = Definition.SizeOf(Instance);
@@ -64,7 +64,7 @@ public sealed class WidgetHost : Window
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        // Se Explorer si riavvia, il desktop cambia: i widget vanno rimessi al loro posto.
+        // If Explorer restarts, the desktop changes: the widgets must be put back in place.
         if ((uint)msg == WidgetManager.TaskbarCreatedMessage)
             Dispatcher.BeginInvoke(new Action(Place));
         return IntPtr.Zero;
@@ -78,10 +78,10 @@ public sealed class WidgetHost : Window
             DesktopHost.Detach(_hwnd, x, y, w, h);
         else
             DesktopHost.PlaceAboveDesktop(_hwnd, x, y, w, h);
-        App.Log($"{Instance.Type}/{Instance.Id}: posizionato in {x},{y} ({w}x{h}px)");
+        App.Log($"{Instance.Type}/{Instance.Id}: placed at {x},{y} ({w}x{h}px)");
     }
 
-    /// <summary>Rende il widget trascinabile. Resta sul desktop, sotto le altre finestre.</summary>
+    /// <summary>Makes the widget draggable. It stays on the desktop, below the other windows.</summary>
     internal void BeginEdit()
     {
         if (Editing) return;
@@ -102,8 +102,8 @@ public sealed class WidgetHost : Window
     {
         if (e.ButtonState != MouseButtonState.Pressed) return;
         DragMove();
-        // Finito il trascinamento: si ricorda il punto e si rimette il widget subito sopra il desktop,
-        // nel caso lo spostamento l'avesse portato sopra le altre finestre.
+        // Drag finished: remember the spot and put the widget back just above the desktop,
+        // in case moving it brought it above the other windows.
         DesktopHost.GetWindowRect(_hwnd, out var r);
         Instance.Position = new[] { r.Left, r.Top };
         WidgetManager.Settings.Save();

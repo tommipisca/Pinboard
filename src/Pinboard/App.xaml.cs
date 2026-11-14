@@ -12,10 +12,10 @@ public partial class App : Application
     private EventWaitHandle? _showSignal;
     private static DashboardWindow? _dashboard;
 
-    /// <summary>--floating: finestre normali in primo piano, per provare il disegno.</summary>
+    /// <summary>--floating: regular always-on-top windows, for testing the design.</summary>
     internal static bool Floating { get; private set; }
 
-    /// <summary>--debug: scrive il log in %APPDATA%\Pinboard\pinboard.log.</summary>
+    /// <summary>--debug: writes the log to %APPDATA%\Pinboard\pinboard.log.</summary>
     internal static bool Debug { get; private set; }
 
     internal static bool Exiting { get; private set; }
@@ -25,7 +25,7 @@ public partial class App : Application
         _singleInstance = new Mutex(true, InstanceName, out bool isFirst);
         if (!isFirst)
         {
-            // Pinboard e' gia' aperto: gli si chiede di mostrare la dashboard.
+            // Pinboard is already running: ask it to show the dashboard.
             try
             {
                 using var signal = EventWaitHandle.OpenExisting(ShowEventName);
@@ -57,7 +57,7 @@ public partial class App : Application
         if (!e.Args.Contains(AutoStart.BackgroundArg)) ShowDashboard();
     }
 
-    /// <summary>Un secondo avvio di Pinboard segnala questo evento per riaprire la dashboard.</summary>
+    /// <summary>A second launch of Pinboard signals this event to reopen the dashboard.</summary>
     private void ListenForShowRequests()
     {
         _showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);

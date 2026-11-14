@@ -8,14 +8,14 @@ namespace Pinboard;
 public sealed class CalendarDefinition : WidgetDefinition
 {
     public override string Type => "calendar";
-    public override string Name => "Calendario";
+    public override string Name => "Calendar";
     public override string Description =>
-        "La data di oggi a colpo d'occhio: giorno della settimana, numero e mese. " +
-        "La versione media mostra anche il mese intero.";
-    public override string Category => "Calendario";
+        "Today's date at a glance: day of the week, number and month. " +
+        "The medium size also shows the whole month.";
+    public override string Category => "Calendar";
     public override IReadOnlyList<WidgetSize> Sizes { get; } = new[] { Small, Medium };
     public override string DefaultAccent => "#FF3B30";
-    public override IReadOnlyList<string> Features { get; } = new[] { "Mese intero nella versione media" };
+    public override IReadOnlyList<string> Features { get; } = new[] { "The whole month in the medium size" };
 
     protected override WidgetView Build(WidgetInstance w, WidgetStyle style, WidgetSize size) =>
         new CalendarView(style, size);
@@ -48,7 +48,7 @@ internal sealed class CalendarView : WidgetView
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         Add(grid, Weekday(today), 0);
         Add(grid, BigDay(today, 68), 1);
-        Add(grid, Caption(today.ToString("MMMM yyyy", Fonts.Italian)), 2);
+        Add(grid, Caption(today.ToString("MMMM yyyy", Fonts.Culture)), 2);
         return grid;
     }
 
@@ -60,7 +60,7 @@ internal sealed class CalendarView : WidgetView
         left.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         Add(left, Weekday(today), 0);
         Add(left, BigDay(today, 64), 1);
-        Add(left, Caption(today.ToString("MMMM yyyy", Fonts.Italian)), 2);
+        Add(left, Caption(today.ToString("MMMM yyyy", Fonts.Culture)), 2);
 
         var root = new Grid { Margin = new Thickness(16, 14, 14, 12) };
         root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(124) });
@@ -72,7 +72,7 @@ internal sealed class CalendarView : WidgetView
         return root;
     }
 
-    /// <summary>Griglia del mese, settimana da lunedi'.</summary>
+    /// <summary>Month grid, weeks starting on Monday.</summary>
     private Grid MonthGrid(DateTime today)
     {
         var first = new DateTime(today.Year, today.Month, 1);
@@ -85,7 +85,7 @@ internal sealed class CalendarView : WidgetView
         grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(20) });
         for (int r = 0; r < weeks; r++) grid.RowDefinitions.Add(new RowDefinition());
 
-        string[] heads = { "L", "M", "M", "G", "V", "S", "D" };
+        string[] heads = { "M", "T", "W", "T", "F", "S", "S" };
         for (int c = 0; c < 7; c++)
         {
             var head = new TextBlock
@@ -111,7 +111,7 @@ internal sealed class CalendarView : WidgetView
                 cell.Children.Add(new Ellipse { Width = 21, Height = 21, Fill = Look.Accent });
             cell.Children.Add(new TextBlock
             {
-                Text = d.ToString(Fonts.Italian),
+                Text = d.ToString(Fonts.Culture),
                 FontFamily = Fonts.Text,
                 FontSize = 11.5,
                 FontWeight = isToday ? FontWeights.SemiBold : FontWeights.Normal,
@@ -128,7 +128,7 @@ internal sealed class CalendarView : WidgetView
 
     private TextBlock Weekday(DateTime d) => new()
     {
-        Text = d.ToString("dddd", Fonts.Italian).ToUpper(Fonts.Italian),
+        Text = d.ToString("dddd", Fonts.Culture).ToUpper(Fonts.Culture),
         FontFamily = Fonts.Text,
         FontSize = 13,
         FontWeight = FontWeights.SemiBold,
@@ -137,7 +137,7 @@ internal sealed class CalendarView : WidgetView
 
     private TextBlock BigDay(DateTime d, double size) => new()
     {
-        Text = d.Day.ToString(Fonts.Italian),
+        Text = d.Day.ToString(Fonts.Culture),
         FontFamily = Fonts.Display,
         FontSize = size,
         FontWeight = FontWeights.Light,
@@ -162,7 +162,7 @@ internal sealed class CalendarView : WidgetView
 
 internal static class Fonts
 {
-    public static readonly System.Globalization.CultureInfo Italian = new("it-IT");
+    public static readonly System.Globalization.CultureInfo Culture = new("en-US");
     public static readonly FontFamily Display = new("Segoe UI Variable Display, Segoe UI");
     public static readonly FontFamily Text = new("Segoe UI Variable Text, Segoe UI");
 }

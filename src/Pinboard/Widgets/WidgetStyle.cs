@@ -3,7 +3,7 @@ using Microsoft.Win32;
 
 namespace Pinboard;
 
-/// <summary>Tema chiaro o scuro delle app di Windows.</summary>
+/// <summary>Light or dark theme of Windows apps.</summary>
 internal static class SystemTheme
 {
     public static bool AppsUseLight()
@@ -43,7 +43,7 @@ internal static class ColorUtil
 
     public static string ToHex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
 
-    /// <summary>Luminanza relativa (0 nero, 1 bianco).</summary>
+    /// <summary>Relative luminance (0 black, 1 white).</summary>
     public static double Luminance(Color c)
     {
         static double Lin(byte v)
@@ -64,7 +64,7 @@ internal static class ColorUtil
     public static SolidColorBrush Brush(string hex) => Brush(Parse(hex));
 }
 
-/// <summary>I colori con cui un widget si disegna, ricavati dalle sue personalizzazioni.</summary>
+/// <summary>The colors a widget draws with, derived from its customizations.</summary>
 public sealed class WidgetStyle
 {
     public static readonly Color LightCard = ColorUtil.Parse("#F6F6F8");
@@ -77,7 +77,7 @@ public sealed class WidgetStyle
     public required Brush Secondary { get; init; }
     public required Brush Accent { get; init; }
 
-    /// <summary>Testo da mettere sopra il colore d'accento.</summary>
+    /// <summary>Text drawn on top of the accent color.</summary>
     public required Brush OnAccent { get; init; }
 
     public static WidgetStyle For(WidgetInstance w, string defaultAccent)

@@ -5,7 +5,7 @@ namespace Pinboard;
 
 public sealed record WidgetSize(string Id, string Name, double Width, double Height);
 
-/// <summary>Il contenuto di un widget: una scheda arrotondata che si aggiorna da sola.</summary>
+/// <summary>The content of a widget: a rounded card that updates itself.</summary>
 public abstract class WidgetView : Border
 {
     protected WidgetView(WidgetStyle style, WidgetSize size)
@@ -22,15 +22,15 @@ public abstract class WidgetView : Border
 
     protected WidgetStyle Look { get; }
 
-    /// <summary>Chiamato quattro volte al secondo.</summary>
+    /// <summary>Called four times per second.</summary>
     public virtual void Tick() { }
 }
 
-/// <summary>Un tipo di widget del catalogo.</summary>
+/// <summary>A widget type in the catalog.</summary>
 public abstract class WidgetDefinition
 {
-    public static readonly WidgetSize Small = new("small", "Piccolo", 170, 170);
-    public static readonly WidgetSize Medium = new("medium", "Medio", 360, 170);
+    public static readonly WidgetSize Small = new("small", "Small", 170, 170);
+    public static readonly WidgetSize Medium = new("medium", "Medium", 360, 170);
 
     public abstract string Type { get; }
     public abstract string Name { get; }
@@ -39,7 +39,7 @@ public abstract class WidgetDefinition
     public abstract IReadOnlyList<WidgetSize> Sizes { get; }
     public abstract string DefaultAccent { get; }
 
-    /// <summary>Cosa si puo' personalizzare oltre all'aspetto comune.</summary>
+    /// <summary>What can be customized besides the common appearance.</summary>
     public virtual IReadOnlyList<string> Features => Array.Empty<string>();
 
     public WidgetSize SizeOf(WidgetInstance w) => Sizes.FirstOrDefault(s => s.Id == w.Size) ?? Sizes[0];
@@ -57,10 +57,10 @@ public abstract class WidgetDefinition
 
     protected virtual void ApplyDefaults(WidgetInstance w) { }
 
-    /// <summary>Controlli per le opzioni proprie del widget; null se non ne ha.</summary>
+    /// <summary>Controls for the widget's own options; null if it has none.</summary>
     public virtual FrameworkElement? CreateOptionsEditor(WidgetInstance working, Action changed) => null;
 
-    /// <summary>Riassunto delle opzioni proprie, per l'elenco dei widget sul desktop.</summary>
+    /// <summary>Summary of the widget's own options, for the list of widgets on the desktop.</summary>
     public virtual string? Summary(WidgetInstance w) => null;
 }
 

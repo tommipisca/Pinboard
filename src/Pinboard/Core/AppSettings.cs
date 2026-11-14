@@ -3,33 +3,33 @@ using System.Text.Json;
 
 namespace Pinboard;
 
-/// <summary>Un widget messo sul desktop, con le sue personalizzazioni.</summary>
+/// <summary>A widget placed on the desktop, with its customizations.</summary>
 public sealed class WidgetInstance
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N")[..10];
 
-    /// <summary>Tipo di widget nel catalogo (es. "clock").</summary>
+    /// <summary>Widget type in the catalog (e.g. "clock").</summary>
     public string Type { get; set; } = "";
 
-    /// <summary>Id della taglia (es. "small", "medium").</summary>
+    /// <summary>Size id (e.g. "small", "medium").</summary>
     public string Size { get; set; } = "small";
 
-    /// <summary>"system", "light" o "dark".</summary>
+    /// <summary>"system", "light" or "dark".</summary>
     public string Theme { get; set; } = "system";
 
-    /// <summary>Colore di sfondo "#RRGGBB"; null = quello del tema.</summary>
+    /// <summary>Background color "#RRGGBB"; null = the theme's one.</summary>
     public string? Background { get; set; }
 
-    /// <summary>Colore d'accento "#RRGGBB"; null = quello predefinito del widget.</summary>
+    /// <summary>Accent color "#RRGGBB"; null = the widget's default.</summary>
     public string? Accent { get; set; }
 
-    /// <summary>Opacita' dello sfondo, da 0.2 a 1.</summary>
+    /// <summary>Background opacity, from 0.2 to 1.</summary>
     public double Opacity { get; set; } = 0.92;
 
-    /// <summary>Opzioni proprie del tipo di widget.</summary>
+    /// <summary>Options specific to the widget type.</summary>
     public Dictionary<string, string> Options { get; set; } = new();
 
-    /// <summary>Angolo in alto a sinistra in pixel dello schermo; null = ancora da posizionare.</summary>
+    /// <summary>Top-left corner in screen pixels; null = not placed yet.</summary>
     public int[]? Position { get; set; }
 
     public string Option(string key, string fallback = "") =>
@@ -39,7 +39,7 @@ public sealed class WidgetInstance
         JsonSerializer.Deserialize<WidgetInstance>(JsonSerializer.Serialize(this))!;
 }
 
-/// <summary>Tutto quello che Pinboard ricorda: widget sul desktop e preferiti.</summary>
+/// <summary>Everything Pinboard remembers: widgets on the desktop and favorites.</summary>
 public sealed class AppSettings
 {
     public int Version { get; set; } = 1;
@@ -47,10 +47,10 @@ public sealed class AppSettings
     public List<string> Favorites { get; set; } = new();
     public bool CloseHintShown { get; set; }
 
-    /// <summary>Controlla da solo se ci sono aggiornamenti (all'avvio e ogni 6 ore).</summary>
+    /// <summary>Check for updates automatically (at startup and every 6 hours).</summary>
     public bool AutoUpdate { get; set; } = true;
 
-    /// <summary>%APPDATA%\Pinboard, oppure la cartella in PINBOARD_HOME (per le prove).</summary>
+    /// <summary>%APPDATA%\Pinboard, or the folder in PINBOARD_HOME (for testing).</summary>
     internal static string Folder =>
         Environment.GetEnvironmentVariable("PINBOARD_HOME") is { Length: > 0 } home
             ? home
@@ -72,14 +72,14 @@ public sealed class AppSettings
         }
         catch (Exception ex)
         {
-            App.Log("Impostazioni illeggibili, si riparte da zero: " + ex.Message, force: true);
+            App.Log("Unreadable settings, starting from scratch: " + ex.Message, force: true);
         }
         return new();
     }
 
     /// <summary>
-    /// Le versioni precedenti avevano orologio e calendario sempre attivi e salvavano solo le
-    /// posizioni ("clock": [x, y]). Diventano due widget normali, nello stesso punto.
+    /// Earlier versions always showed the clock and the calendar and only saved their
+    /// positions ("clock": [x, y]). They become two regular widgets, in the same place.
     /// </summary>
     private static AppSettings MigrateLegacy()
     {
@@ -110,7 +110,7 @@ public sealed class AppSettings
         }
         catch (Exception ex)
         {
-            App.Log("Salvataggio non riuscito: " + ex.Message, force: true);
+            App.Log("Could not save: " + ex.Message, force: true);
         }
     }
 }

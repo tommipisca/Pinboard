@@ -15,7 +15,7 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <!-- Barra laterale -->
+        <!-- Sidebar -->
         <DockPanel Margin="12,10,12,16">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="12,4,0,26">
                 <Image Source="/Assets/Pinboard.ico" Width="24" Height="24"
@@ -25,11 +25,11 @@
             </StackPanel>
 
             <RadioButton x:Name="NavSettings" DockPanel.Dock="Bottom" Style="{StaticResource Nav}"
-                         Content="Impostazioni" Checked="OnNav" />
+                         Content="Settings" Checked="OnNav" />
 
             <StackPanel>
-                <RadioButton x:Name="NavCatalog" Style="{StaticResource Nav}" Content="Catalogo" Checked="OnNav" />
-                <RadioButton x:Name="NavDesktop" Style="{StaticResource Nav}" Checked="OnNav" AutomationProperties.Name="Sul desktop">
+                <RadioButton x:Name="NavCatalog" Style="{StaticResource Nav}" Content="Catalog" Checked="OnNav" />
+                <RadioButton x:Name="NavDesktop" Style="{StaticResource Nav}" Checked="OnNav" AutomationProperties.Name="On your desktop">
                     <DockPanel>
                         <Border x:Name="CountBadge" DockPanel.Dock="Right" CornerRadius="9" MinWidth="22" Height="20"
                                 Padding="6,0" Background="{DynamicResource Bg.Surface}"
@@ -38,13 +38,13 @@
                                        Foreground="{DynamicResource Ink.Muted}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Sul desktop" VerticalAlignment="Center" />
+                        <TextBlock Text="On your desktop" VerticalAlignment="Center" />
                     </DockPanel>
                 </RadioButton>
             </StackPanel>
         </DockPanel>
 
-        <!-- Contenuto -->
+        <!-- Content -->
         <Border Grid.Column="1" Background="{DynamicResource Bg.Surface}" CornerRadius="12,0,0,0"
                 BorderBrush="{DynamicResource Stroke}" BorderThickness="1,1,0,0">
             <ContentControl x:Name="Page" Focusable="False" />

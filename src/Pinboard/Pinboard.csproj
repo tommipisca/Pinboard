@@ -14,9 +14,9 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Version>0.1.0</Version>
     <Product>Pinboard</Product>
-    <Description>Widget per il desktop di Windows</Description>
+    <Description>Widgets for the Windows desktop</Description>
     <Authors>Tommaso Piscaglia</Authors>
-    <!-- Main e' in Program.cs: Velopack deve partire prima di WPF. -->
+    <!-- Main is in Program.cs: Velopack must run before WPF. -->
     <StartupObject>Pinboard.Program</StartupObject>
   </PropertyGroup>
 
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- WPF e WinForms insieme creano nomi ambigui (Application, Color...). -->
+    <!-- WPF and WinForms together create ambiguous names (Application, Color...). -->
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
     <Using Remove="System.Net.Http" />
