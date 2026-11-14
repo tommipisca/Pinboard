@@ -73,6 +73,7 @@ public static class WidgetCatalog
     public static IReadOnlyList<WidgetDefinition> All { get; } = new WidgetDefinition[]
     {
         new ClockDefinition(),
+        new WorldClockDefinition(),
         new CalendarDefinition(),
         new CountdownDefinition(),
         new ProgressDefinition(),
