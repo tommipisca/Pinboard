@@ -24,6 +24,9 @@ public abstract class WidgetView : Border
 
     /// <summary>Called four times per second.</summary>
     public virtual void Tick() { }
+
+    /// <summary>The view is being replaced or closed: stop timers and unsubscribe from events.</summary>
+    public virtual void Detach() { }
 }
 
 /// <summary>A widget type in the catalog.</summary>
@@ -31,6 +34,7 @@ public abstract class WidgetDefinition
 {
     public static readonly WidgetSize Small = new("small", "Small", 170, 170);
     public static readonly WidgetSize Medium = new("medium", "Medium", 360, 170);
+    public static readonly WidgetSize Large = new("large", "Large", 360, 360);
 
     public abstract string Type { get; }
     public abstract string Name { get; }

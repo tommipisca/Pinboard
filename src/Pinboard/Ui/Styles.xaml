@@ -430,6 +430,26 @@
         </Setter>
     </Style>
 
+    <!-- Plain text input -->
+    <Style x:Key="Input" TargetType="TextBox" BasedOn="{StaticResource SearchBox}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="b" CornerRadius="7" Height="36" BorderThickness="1" Padding="10,0"
+                            Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}">
+                        <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" Focusable="False" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                            <Setter TargetName="b" Property="BorderThickness" Value="1.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- List (the clock's cities) -->
     <Style TargetType="ListBox">
         <Setter Property="OverridesDefaultStyle" Value="True" />

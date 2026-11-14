@@ -9,7 +9,7 @@ namespace Pinboard;
 public sealed class WidgetHost : Window
 {
     private IntPtr _hwnd;
-    private WidgetView _view = null!;
+    private WidgetView? _view;
 
     public WidgetHost(WidgetInstance instance, WidgetDefinition definition)
     {
@@ -41,12 +41,19 @@ public sealed class WidgetHost : Window
         WidgetSize size = Definition.SizeOf(Instance);
         Width = size.Width;
         Height = size.Height;
+        _view?.Detach();
         _view = Definition.CreateView(Instance);
         Content = _view;
         if (_hwnd != IntPtr.Zero) Place();
     }
 
-    public void Tick() => _view.Tick();
+    public void Tick() => _view?.Tick();
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _view?.Detach();
+        base.OnClosed(e);
+    }
 
     internal (int w, int h) SizeInPixels()
     {
@@ -87,13 +94,14 @@ public sealed class WidgetHost : Window
         if (Editing) return;
         Editing = true;
         Cursor = Cursors.SizeAll;
-        MouseLeftButtonDown += OnDrag;
+        // Preview: the drag wins over buttons inside the widget, which must not act while moving.
+        PreviewMouseLeftButtonDown += OnDrag;
     }
 
     internal void EndEdit()
     {
         if (!Editing) return;
-        MouseLeftButtonDown -= OnDrag;
+        PreviewMouseLeftButtonDown -= OnDrag;
         Cursor = null;
         Editing = false;
     }
@@ -101,6 +109,7 @@ public sealed class WidgetHost : Window
     private void OnDrag(object sender, MouseButtonEventArgs e)
     {
         if (e.ButtonState != MouseButtonState.Pressed) return;
+        e.Handled = true;
         DragMove();
         // Drag finished: remember the spot and put the widget back just above the desktop,
         // in case moving it brought it above the other windows.

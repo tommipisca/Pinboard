@@ -168,6 +168,106 @@ internal static class UiKit
         brush.Freeze();
         return brush;
     }
+
+    /// <summary>A one-line text input.</summary>
+    public static TextBox Input(string text, string name, Action<string> changed, double width = 260)
+    {
+        var box = new TextBox { Text = text, Width = width, HorizontalAlignment = HorizontalAlignment.Left };
+        box.SetResourceReference(FrameworkElement.StyleProperty, "Input");
+        AutomationProperties.SetName(box, name);
+        box.TextChanged += (_, _) => changed(box.Text);
+        return box;
+    }
+
+    /// <summary>A list of switches, one per value; reports the set of checked values.</summary>
+    public static FrameworkElement CheckList(IEnumerable<(string Value, string Label)> items, ISet<string> selected,
+        Action<ISet<string>> changed)
+    {
+        var current = new HashSet<string>(selected);
+        var panel = new StackPanel();
+        foreach (var (value, label) in items)
+        {
+            var box = new CheckBox { Content = label, IsChecked = current.Contains(value), Margin = new Thickness(0, 0, 0, 10) };
+            box.SetResourceReference(FrameworkElement.StyleProperty, "Switch");
+            box.Click += (_, _) =>
+            {
+                if (box.IsChecked == true) current.Add(value);
+                else current.Remove(value);
+                changed(new HashSet<string>(current));
+            };
+            panel.Children.Add(box);
+        }
+        return panel;
+    }
+
+    /// <summary>The chosen folder and a button that opens the Windows folder picker.</summary>
+    public static FrameworkElement FolderPicker(string path, Action<string> changed)
+    {
+        var label = Text(path, "Text.Body");
+        label.TextTrimming = TextTrimming.CharacterEllipsis;
+        label.TextWrapping = TextWrapping.NoWrap;
+        label.VerticalAlignment = VerticalAlignment.Center;
+        label.ToolTip = new ToolTip { Content = path };
+
+        var choose = Button("Choose folder…", "Button.Secondary", () =>
+        {
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Choose a folder with photos",
+                UseDescriptionForTitle = true,
+                SelectedPath = path,
+            };
+            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+            path = dialog.SelectedPath;
+            label.Text = path;
+            label.ToolTip = new ToolTip { Content = path };
+            changed(path);
+        });
+        choose.Margin = new Thickness(12, 0, 0, 0);
+        DockPanel.SetDock(choose, Dock.Right);
+        return new DockPanel { Children = { choose, label } };
+    }
+
+    /// <summary>
+    /// Date (yyyy-MM-dd) and time (HH:mm) inputs. Valid values are reported right away; an invalid
+    /// one is shown in the caption and ignored until it is fixed.
+    /// </summary>
+    public static FrameworkElement DateTimePicker(DateTime value, Action<DateTime> changed)
+    {
+        var caption = Text("", "Text.Caption", new Thickness(0, 6, 0, 0));
+        TextBox date = null!, time = null!;
+
+        void Update()
+        {
+            bool okDate = DateTime.TryParseExact(date.Text.Trim(), "yyyy-MM-dd", Fonts.Culture,
+                System.Globalization.DateTimeStyles.None, out DateTime d);
+            bool okTime = TimeSpan.TryParseExact(time.Text.Trim(), @"h\:mm", Fonts.Culture, out TimeSpan t)
+                && t < TimeSpan.FromDays(1);
+            if (!okDate || !okTime)
+            {
+                caption.Text = !okDate ? "Write the date as year-month-day, e.g. 2026-12-25." : "Write the time as hours:minutes, e.g. 09:30.";
+                caption.SetResourceReference(TextBlock.ForegroundProperty, "Danger");
+                return;
+            }
+            DateTime result = d.Date + t;
+            caption.Text = result.ToString("dddd, MMMM d, yyyy 'at' HH:mm", Fonts.Culture);
+            caption.SetResourceReference(TextBlock.ForegroundProperty, "Ink.Muted");
+            changed(result);
+        }
+
+        date = Input(value.ToString("yyyy-MM-dd", Fonts.Culture), "Date", _ => Update(), 140);
+        time = Input(value.ToString("HH:mm", Fonts.Culture), "Time", _ => Update(), 90);
+        time.Margin = new Thickness(10, 0, 0, 0);
+        Update();
+        return new StackPanel
+        {
+            Children =
+            {
+                new StackPanel { Orientation = Orientation.Horizontal, Children = { date, time } },
+                caption,
+            },
+        };
+    }
 }
 
 /// <summary>Cork board on which a widget is shown "pinned" with a push pin.</summary>

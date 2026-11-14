@@ -95,9 +95,15 @@ public partial class DashboardWindow : Window
         CountBadge.Visibility = n > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    private void ClearLive()
+    {
+        foreach (var v in _live) v.Detach();
+        _live.Clear();
+    }
+
     private void SetPage(FrameworkElement content, Action reshow)
     {
-        _live.Clear();
+        ClearLive();
         _cards = null;
         _reshow = reshow;
         Page.Content = new ScrollViewer
@@ -180,7 +186,7 @@ public partial class DashboardWindow : Window
     private void FillCards()
     {
         if (_cards == null) return;
-        _live.Clear();
+        ClearLive();
 
         string q = Cities.Normalize(_search);
         var defs = WidgetCatalog.All.Where(d =>

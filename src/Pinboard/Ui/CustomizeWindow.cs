@@ -137,7 +137,11 @@ internal sealed class CustomizeWindow : Window
         Refresh();
         _timer.Tick += (_, _) => _preview?.Tick();
         _timer.Start();
-        Closed += (_, _) => _timer.Stop();
+        Closed += (_, _) =>
+        {
+            _timer.Stop();
+            _preview?.Detach();
+        };
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -151,6 +155,7 @@ internal sealed class CustomizeWindow : Window
 
     private void Refresh()
     {
+        _preview?.Detach();
         _preview = _def.CreateView(_working);
         _stage.Show(_preview);
     }

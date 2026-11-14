@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -12,7 +13,7 @@
     <RootNamespace>Pinboard</RootNamespace>
     <AssemblyName>Pinboard</AssemblyName>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Product>Pinboard</Product>
     <Description>Widgets for the Windows desktop</Description>
     <Authors>Tommaso Piscaglia</Authors>
