@@ -24,6 +24,7 @@
   <ItemGroup>
     <ApplicationDefinition Remove="App.xaml" />
     <Page Include="App.xaml" />
+    <InternalsVisibleTo Include="Pinboard.Tests" />
   </ItemGroup>
 
   <ItemGroup>

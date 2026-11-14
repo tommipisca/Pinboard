@@ -74,6 +74,7 @@ public static class WidgetCatalog
     {
         new ClockDefinition(),
         new CalendarDefinition(),
+        new ProgressDefinition(),
     };
 
     public static WidgetDefinition? Find(string type) => All.FirstOrDefault(d => d.Type == type);
