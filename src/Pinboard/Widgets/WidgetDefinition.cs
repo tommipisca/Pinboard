@@ -78,6 +78,7 @@ public static class WidgetCatalog
         new CalendarDefinition(),
         new CountdownDefinition(),
         new ProgressDefinition(),
+        new PhotoDefinition(),
     };
 
     public static WidgetDefinition? Find(string type) => All.FirstOrDefault(d => d.Type == type);
