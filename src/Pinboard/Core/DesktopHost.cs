@@ -93,7 +93,9 @@ internal static class DesktopHost
         int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
         SetWindowLong(hwnd, GWL_EXSTYLE, (ex | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE) & ~WS_EX_APPWINDOW);
 
-        // Indicare come "hWndInsertAfter" una finestra non topmost toglie anche il flag topmost.
+        // Prima si toglie il flag topmost (lo mette "Sposta widget"): se la finestra fosse ancora topmost,
+        // metterla dopo il desktop la manderebbe sotto il desktop, nascosta.
+        SetWindowPos(hwnd, HWND_NOTOPMOST, screenX, screenY, width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
         SetWindowPos(hwnd, FindDesktopTopLevel(), screenX, screenY, width, height,
             SWP_NOACTIVATE | SWP_SHOWWINDOW);
         _desktopMode = false;
@@ -149,7 +151,23 @@ internal static class DesktopHost
                 SetWindowPos(hwnd, desktop, 0, 0, 0, 0, flags);
             }
             _desktopMode = false;
+            _settleTicks = 8;
             App.Log("Desktop non piu' in primo piano: widget rimessi sopra il desktop.");
         }
+        else if (!desktopFocused && _settleTicks > 0)
+        {
+            // Uscendo da "Mostra desktop", Windows riporta il desktop in fondo solo dopo un attimo:
+            // fino ad allora "subito dopo il desktop" e' a meta' delle finestre. Per circa due secondi
+            // i widget si rimettono dopo il desktop, finche' non e' tornato al suo posto.
+            _settleTicks--;
+            IntPtr desktop = FindDesktopTopLevel();
+            foreach (IntPtr hwnd in windows) SetWindowPos(hwnd, desktop, 0, 0, 0, 0, flags);
+        }
+        else if (desktopFocused)
+        {
+            _settleTicks = 0;
+        }
     }
+
+    private static int _settleTicks;
 }

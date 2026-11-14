@@ -1,0 +1,53 @@
+<Window x:Class="Pinboard.DashboardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Pinboard"
+        Width="1080" Height="720" MinWidth="840" MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        Icon="/Assets/Pinboard.ico"
+        UseLayoutRounding="True"
+        Background="{DynamicResource Bg.Window}"
+        FontFamily="{StaticResource Font.Text}"
+        Foreground="{DynamicResource Ink}">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="232" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <!-- Barra laterale -->
+        <DockPanel Margin="12,10,12,16">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="12,4,0,26">
+                <Image Source="/Assets/Pinboard.ico" Width="24" Height="24"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <TextBlock Text="Pinboard" Style="{StaticResource Text.Heading}" Margin="10,0,0,1"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
+            <RadioButton x:Name="NavSettings" DockPanel.Dock="Bottom" Style="{StaticResource Nav}"
+                         Content="Impostazioni" Checked="OnNav" />
+
+            <StackPanel>
+                <RadioButton x:Name="NavCatalog" Style="{StaticResource Nav}" Content="Catalogo" Checked="OnNav" />
+                <RadioButton x:Name="NavDesktop" Style="{StaticResource Nav}" Checked="OnNav" AutomationProperties.Name="Sul desktop">
+                    <DockPanel>
+                        <Border x:Name="CountBadge" DockPanel.Dock="Right" CornerRadius="9" MinWidth="22" Height="20"
+                                Padding="6,0" Background="{DynamicResource Bg.Surface}"
+                                BorderBrush="{DynamicResource Stroke.Strong}" BorderThickness="1">
+                            <TextBlock x:Name="CountText" FontSize="11.5" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource Ink.Muted}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Sul desktop" VerticalAlignment="Center" />
+                    </DockPanel>
+                </RadioButton>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Contenuto -->
+        <Border Grid.Column="1" Background="{DynamicResource Bg.Surface}" CornerRadius="12,0,0,0"
+                BorderBrush="{DynamicResource Stroke}" BorderThickness="1,1,0,0">
+            <ContentControl x:Name="Page" Focusable="False" />
+        </Border>
+    </Grid>
+</Window>
