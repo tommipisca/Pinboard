@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Windows-10%2B-0078D4?style=flat-square" alt="Windows 10+">
+  <img src="https://img.shields.io/badge/Windows-10_2004%2B-0078D4?style=flat-square" alt="Windows 10 2004+">
   <img src="https://img.shields.io/badge/.NET-8-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt=".NET 8">
   <img src="https://img.shields.io/badge/UI-WPF-1F4E79?style=flat-square" alt="WPF">
   <img src="https://img.shields.io/badge/Updates-Velopack-0EA5A4?style=flat-square" alt="Updates with Velopack">
@@ -44,7 +44,15 @@ Get the latest installer or portable version from [Releases](https://github.com/
 | Widget | Sizes | Own options |
 | --- | --- | --- |
 | Clock | small (analog), medium (analog + digital time, city and date) | your computer's time or another city's (about 90 cities plus every Windows time zone), second hand |
+| World clock | medium (2 to 4 analog dials with city and time difference) | the cities |
 | Calendar | small (weekday, day, month), medium (also the whole month) | — |
+| Countdown | small (days left), medium (days, hours and minutes) | title, date and time, icon |
+| Time progress | small (a ring), medium (day, week, month and year as bars) | day, week, month or year for the small size |
+| System | small (rings), medium (bars with details) | which of CPU, memory, disk and battery to show |
+| Photo frame | small, medium, large | folder (subfolders included), how often the photo changes |
+| Now playing | medium (album art, title, artist, previous / play-pause / next) | — |
+
+Now playing works with any app that shows up in the Windows volume panel, such as Spotify or a browser. Nothing in Pinboard uses the network.
 
 **On the desktop**
 - **Move widgets** (in the dashboard or the tray menu) makes the widgets draggable; they stay on the desktop below the other windows. **Lock position** locks them again.
@@ -91,11 +99,12 @@ The icon (`src/Pinboard/Assets/Pinboard.ico` and `assets/pinboard-icon-1024.png`
 ```
 src/Pinboard/
 ├── Core/          # Settings, widget windows, desktop placement, tray icon, updates
-├── Widgets/       # Widget catalog: definitions, styles, Clock and Calendar
+├── Widgets/       # Widget catalog: definitions, styles and the widgets themselves
 ├── Ui/            # Dashboard, customization window, styles and theme
 ├── Assets/        # App icon
 ├── App.xaml(.cs)  # Single instance, startup and exit
 └── Program.cs     # Entry point: Velopack runs before WPF
+tests/Pinboard.Tests # xUnit tests for the widgets' logic (dotnet test tests/Pinboard.Tests)
 assets/make_icon.py  # Generates the icon
 release.ps1          # Builds a release with Velopack
 ```
