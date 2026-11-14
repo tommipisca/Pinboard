@@ -34,7 +34,7 @@ public partial class App : Application
             args.Handled = true;
         };
 
-        WidgetManager.Start(new ClockWidget(), new CalendarWidget(), new ExamsWidget());
+        WidgetManager.Start(new ClockWidget(), new CalendarWidget());
     }
 
     protected override void OnExit(ExitEventArgs e)

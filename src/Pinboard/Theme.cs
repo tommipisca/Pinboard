@@ -15,16 +15,6 @@ internal static class Theme
     public static readonly Brush Red = Make(IsLight ? "#FF3B30" : "#FF453A");
     public static readonly Brush Orange = Make("#FF9F0A");
 
-    // Stessa tavolozza di ExamsTrack (Palette.examColors): l'indice salvato dall'app vale anche qui.
-    private static readonly Brush[] Palette = new[]
-    {
-        "#9AA5FF", "#4FE3A6", "#FF9F5A", "#5CCBFF", "#F08CFF", "#C6F24E", "#B59CFF",
-        "#3EE6CF", "#FFD15C", "#76AEFF", "#FF8FC8", "#6EEB8E", "#D39BFF", "#45E0F2",
-    }.Select(Make).ToArray();
-
-    /// <summary>Colore di un esame, scelto con il suo indice colore in ExamsTrack.</summary>
-    public static Brush Accent(int index) => Palette[((index % Palette.Length) + Palette.Length) % Palette.Length];
-
     private static bool DetectLight()
     {
         try

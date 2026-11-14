@@ -10,33 +10,10 @@ in fondo alla barra delle applicazioni).
 | --- | --- |
 | Clock | orologio analogico, lancetta dei secondi arancione |
 | Calendar | giorno della settimana in rosso, numero grande, mese e anno |
-| **Exams** | **il widget di [ExamsTrack](#widget-exams)**: prossimo esame con countdown e task di oggi, nello stile dell'app |
-
-Il widget **Exams** mostra i dati dell'app **ExamsTrack** (la versione per Windows): legge i suoi file in
-sola lettura e usa il suo tema, quindi funziona solo se ExamsTrack e' installato. Clock e Calendar
-sono indipendenti.
 
 Lo stile segue i widget piccoli di macOS: scheda quadrata con angoli molto arrotondati (170 x 170),
 sfondo semitrasparente, tipografia sottile e tema chiaro o scuro in base al tema delle app di
 Windows. Lo sfondo non e' sfocato (Mica/Acrylic non funzionano su finestre trasparenti di WPF).
-
-## Widget Exams
-
-Nello stile di ExamsTrack ("inchiostro e evidenziatore"): sfondo blu-inchiostro, testo color carta,
-nome dell'esame in serif (Sitka), countdown in Bahnschrift condensato. Colori e palette degli esami
-sono quelli dell'app. Resta scuro anche con il tema chiaro di Windows.
-
-Legge in sola lettura `%APPDATA%\ExamsTrack\data\exams.json` (e `deletions.json` per escludere gli
-esami eliminati) e si aggiorna da solo quando ExamsTrack salva.
-- **Prossimo esame**: stessa regola dell'app (`nextExam` in `logic.js`): il primo esame con una data,
-  da oggi in poi, ordinato per data e poi per nome. Per impostazione predefinita considera entrambi i
-  corsi, come ExamsTrack; con entrambi visibili indica se e' triennale o magistrale. Mostra nome, countdown (colore dell'esame, ambra a 7 giorni, corallo a 2),
-  data, ora e task completati.
-- **Oggi**: fino a 3 task con scadenza oggi, di qualsiasi esame: cerchio nel colore dell'esame,
-  titolo e nome dell'esame. Quelli da fare vengono prima, quelli fatti sono barrati.
-- Per limitarlo a un corso, aggiungi `"ExamsDegree": "triennale"` (o `"magistrale"`) in
-  `%APPDATA%\Pinboard\widgets.json` e riavvia Pinboard. Non legge ancora l'impostazione
-  "Triennale e magistrale" di ExamsTrack: e' salvata nel localStorage dell'app.
 
 ## Eseguibile
 
