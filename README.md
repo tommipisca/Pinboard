@@ -13,6 +13,7 @@
   <img src="https://img.shields.io/badge/.NET-8-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt=".NET 8">
   <img src="https://img.shields.io/badge/UI-WPF-1F4E79?style=flat-square" alt="WPF">
   <img src="https://img.shields.io/badge/Updates-Velopack-0EA5A4?style=flat-square" alt="Updates with Velopack">
+  <img src="https://img.shields.io/badge/License-MIT-2E8B57?style=flat-square" alt="MIT License">
 </p>
 
 Pinboard's widgets live on the desktop itself, not in the Windows widget board: they sit just above the desktop and below every other window, and stay visible with Show desktop (Win+D or the button at the end of the taskbar). The style follows macOS widgets: cards with very rounded corners, a semi-transparent background, thin type and a light or dark theme.
@@ -105,3 +106,7 @@ release.ps1          # Builds a release with Velopack
 ## Disclaimer
 
 Pinboard is an independent personal project. It is not affiliated with, endorsed by or sponsored by Microsoft Corporation. Windows is a trademark of Microsoft Corporation.
+
+## License
+
+Distributed under the [MIT license](LICENSE).
